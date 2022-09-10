@@ -53,7 +53,7 @@ rebuild: $(OBJ_FILES)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)
 
 run:
-	@./$(BUILD_FOLDER)/$(BINARY_NAME)
+	@./$(BINARY_NAME)
 
 debug: CFLAGS += -g
 debug: clean | rebuild
