@@ -1,4 +1,5 @@
 #include "openal.h"
+#include "sndfile.h"
 /*
  * OpenAL Audio Stream Example
  *
@@ -207,6 +208,13 @@ static int UpdatePlayer(StreamPlayer *player)
         slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
         if(slen > 0)
         {
+            slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
+            alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
+                player->sfinfo.samplerate);
+            alSourceQueueBuffers(player->source, 1, &bufid);
+        }
+        else{
+            sf_seek(player->sndfile, 0, SEEK_SET);
             slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
             alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
                 player->sfinfo.samplerate);

@@ -307,7 +307,11 @@ struct StreamPlayer {
             const size_t readable{((woffset >= roffset) ? woffset : (mBufferDataSize+woffset)) -
                 roffset};
             if(readable == 0)
+            {
+                puts("Finished!");
                 return false;
+
+            }
 
             /* Store the playback offset that the source will start reading
              * from, so it can be tracked during playback.
@@ -385,6 +389,14 @@ int main(int argc, char **argv)
         while(player->update())
             std::this_thread::sleep_for(nanoseconds{seconds{1}} / refresh);
         putc('\n', stdout);
+
+        player->mBufferDataSize = static_cast<ALuint>(player->mSfInfo.samplerate*player->mSfInfo.channels) * sizeof(float);
+        player->mBufferData.reset(new ALbyte[player->mBufferDataSize]);
+        player->mReadPos.store(0, std::memory_order_relaxed);
+        player->mWritePos.store(0, std::memory_order_relaxed);
+        player->mDecoderOffset = 0;
+        while(player->update())
+            std::this_thread::sleep_for(nanoseconds{seconds{1}} / refresh);
 
         /* All done with this file. Close it and go to the next */
         player->close();
