@@ -217,6 +217,7 @@ static int UpdatePlayer(StreamPlayer *player)
             fprintf(stderr, "Error buffering data\n");
             return 0;
         }
+
     }
 
     /* Make sure the source hasn't underrun */
@@ -251,7 +252,7 @@ StreamPlayer* play(char* filename)
     /* Print out usage if no arguments were specified */
 
     if(InitAL(&filename2, &files_to_load_cound) != 0)
-        return 1; //Error
+        return NULL; //Error
 
     player = NewPlayer();
 
@@ -284,7 +285,7 @@ StreamPlayer* play(char* filename)
 
     }
 
-    return 0;
+    return NULL;
 }
 void update(StreamPlayer* player) {
     UpdatePlayer(player);
@@ -300,5 +301,6 @@ int close(StreamPlayer* player) {
     player = NULL;
 
     CloseAL();
+    return 0;
 
 }

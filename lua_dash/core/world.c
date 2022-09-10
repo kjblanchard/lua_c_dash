@@ -7,7 +7,7 @@ World* CreateWorld()
 {
     if(GameWorld)
         return GameWorld;
-    World* world_ptr;
+    World* world_ptr = NULL;
     if(world_ptr != NULL)
         printf("dead");
     world_ptr = (World* )malloc(sizeof(World));

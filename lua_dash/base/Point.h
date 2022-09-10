@@ -46,7 +46,6 @@ inline Point CreatePointXY(int xy)
  */
 inline Point ZeroPoint()
 {
-    Point point = CreatePoint(0,0);
     return CreatePoint(0, 0);
 }
 

@@ -3,6 +3,7 @@
 #include "SDL2/SDL_render.h"
 #include "SDL2/SDL_stdinc.h"
 #include "SDL2/SDL_timer.h"
+#include "base/Point.h"
 #include "core/GraphicsDevice.h"
 #include "core/world.h"
 #include "sound/openal.h"
@@ -11,6 +12,7 @@
 static void ProcessInput()
 {
     SDL_Event sdlEvent;
+    puts("Hello");
     while (SDL_PollEvent(&sdlEvent) != 0)
     {
         if (sdlEvent.type == SDL_KEYDOWN)
@@ -37,6 +39,7 @@ int main()
     {
         Uint64 current = SDL_GetTicks64();
         Uint64 elapsed = current - previous;
+        printf("The elapsed time is %lld",elapsed);
         previous = current;
         ProcessInput();
         update(player);

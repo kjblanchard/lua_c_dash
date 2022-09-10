@@ -15,4 +15,5 @@ typedef struct GraphicsDevice
 
 GraphicsDevice* CreateGraphicsDevice();
 void DestroyGraphicsDevice(GraphicsDevice* graphics);
+int boi2();
 
