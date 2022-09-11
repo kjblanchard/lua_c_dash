@@ -20,16 +20,7 @@ typedef struct StreamPlayer {
     /* Handle for the audio file */
     OggVorbis_File vbfile;
     vorbis_info* vbinfo;
-
-
- //   SNDFILE *sndfile;
- //   SNDFILE *sndfile2;
- //   SF_INFO sfinfo;
- //   SF_INFO sfinfo2;
     short *membuf;
-    unsigned char introloop;
-    unsigned char looped;
-
     /* The format of the output stream (sample rate is in sfinfo) */
     ALenum format;
 } StreamPlayer;

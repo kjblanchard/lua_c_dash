@@ -33,6 +33,7 @@ int main()
     World* world = CreateWorld();
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
+    ProcessInput();
     StreamPlayer* player =  play("build/assets/loop.ogg");
     while (world->is_running) 
     {

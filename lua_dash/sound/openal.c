@@ -47,11 +47,9 @@ static int UpdatePlayer(StreamPlayer *player);
 static StreamPlayer *NewPlayer(void)
 {
     StreamPlayer *player;
-
     //Init memory for player and vorbisfile
     player = calloc(1, sizeof(*player));
-//    player->vbfile = calloc(1,sizeof(OggVorbis_File));
-    // Set the introloop so that we load two clips.
+    //    player->vbfile = calloc(1,sizeof(OggVorbis_File));
     assert(player != NULL);
 
     /* Generate the buffers and source */
@@ -90,12 +88,10 @@ static void DeletePlayer(StreamPlayer *player)
  * it will be closed first. */
 static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 {
-    puts("Did I get here?");
-    size_t frame_size;
+    size_t data_read_size;
 
     ClosePlayerFile(player);
 
-    /* Open the audio file and check that it's usable. */
     int result = ov_fopen(filename, &player->vbfile);
     if (result !=0)
     {
@@ -103,10 +99,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
         return 0;
     }
     player->vbinfo = ov_info(&player->vbfile, -1);
-    if(!player->vbinfo)
-    {
-        puts("Vbinfo is null somehow");
-    }
 
     /* Get the sound format, and figure out the OpenAL format */
     if (player->vbinfo->channels == 1)
@@ -120,21 +112,20 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
         //player->sndfile = NULL;
         return 0;
     }
-    puts("Got here");
-  // data_len is the amount of data to read, allocate said data space
-  // this is calculated by (samples * channels * 2 (aka 16bits))
-
-    frame_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
-    player->membuf = malloc(frame_size);
+    // data_read_size is the size of data to read, allocate said data space
+    // this is calculated by (samples * channels * 2 (aka 16bits))
+    data_read_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
+    printf("Data reading size is %ld bytes \n",data_read_size);
+    player->membuf = malloc(data_read_size);
     return 1;
 }
 
 /* Closes the audio file stream */
 static void ClosePlayerFile(StreamPlayer *player)
 {
-//    if (&player->vbfile)
-//        ov_clear(&player->vbfile);
-//    player->vbfile = NULL;
+    //    if (&player->vbfile)
+    //        ov_clear(&player->vbfile);
+    //    player->vbfile = NULL;
 
     free(player->membuf);
     player->membuf = NULL;
@@ -152,12 +143,17 @@ static int StartPlayer(StreamPlayer *player)
     /* Fill the buffer queue */
     for (i = 0; i < NUM_BUFFERS; i++)
     {
-        /* Get some data to give it to the buffer */
+        //Read data to load into a buffer.
+        long bytes_read = 0;
+        int request_size = 4096;
+        while(bytes_read < BUFFER_SAMPLES){
+            bytes_read +=  ov_read(&player->vbfile, (char*)player->membuf + bytes_read, request_size, 0, sizeof(short), 1, 0);
+            request_size = (bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - bytes_read;
+        }
 
         int sel = 0;
-        long slen = ov_read(&player->vbfile, (char*)player->membuf, BUFFER_SAMPLES, 0, sizeof(short), 1, 0);
-        alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)slen,
-                     player->vbinfo->rate);
+        alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)bytes_read,
+                player->vbinfo->rate);
     }
     if (alGetError() != AL_NO_ERROR)
     {
@@ -168,6 +164,7 @@ static int StartPlayer(StreamPlayer *player)
     /* Now queue and start playback! */
     alSourceQueueBuffers(player->source, i, player->buffers);
     alSourcePlay(player->source);
+    ALint buffers = 0;
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error starting playback\n");
@@ -178,10 +175,9 @@ static int StartPlayer(StreamPlayer *player)
 }
 static int RestartStream(StreamPlayer *player, long slen, ALuint bufid)
 {
-    puts("Restarted loop");
     ov_time_seek_lap(&player->vbfile, 0.0);
     alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                 player->vbinfo->rate);
+            player->vbinfo->rate);
     alSourceQueueBuffers(player->source, 1, &bufid);
 
     return 0;
@@ -189,11 +185,10 @@ static int RestartStream(StreamPlayer *player, long slen, ALuint bufid)
 
 static int UpdatePlayer(StreamPlayer *player)
 {
-    ALint processed, state, seconds;
+    ALint processed, state;
     /* Get relevant source info */
     alGetSourcei(player->source, AL_SOURCE_STATE, &state);
     alGetSourcei(player->source, AL_BUFFERS_PROCESSED, &processed);
-    alGetSourcei(player->source, AL_BUFFER, &seconds);
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error checking source state\n");
@@ -201,38 +196,54 @@ static int UpdatePlayer(StreamPlayer *player)
     }
 
     /* Unqueue and handle each processed buffer */
+    static int buffs_processed = 0;
     while (processed > 0)
     {
+        printf("Buff was processed, %d\n",++buffs_processed);
         ALuint bufid;
-        long slen;
+        long slen = 0;
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
         /* Read the next chunk of data, refill the buffer, and queue it
          * back on the source */
-        slen = ov_read(&player->vbfile, (char*)player->membuf, BUFFER_SAMPLES, 0, sizeof(short), 1, 0);
-        if (slen > 0)
-        {
-            alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                         player->vbinfo->rate);
-            alSourceQueueBuffers(player->source, 1, &bufid);
+        //Read data to load into a buffer.
+        long bytes_read = 0;
+        int request_size = 4096;
+        unsigned char ended = 0;
+        while(bytes_read < BUFFER_SAMPLES){
+            int stream_bytes_read = ov_read(&player->vbfile, (char*)player->membuf + bytes_read, request_size, 0, sizeof(short), 1, 0);
+            if(stream_bytes_read == 0)
+            {
+                ended = 1;
+                break;
+            }
+            bytes_read += stream_bytes_read;
+            request_size = (bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - bytes_read;
         }
-        else
+        if (!ended)
+        {
+            alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
+                    player->vbinfo->rate);
+            alSourceQueueBuffers(player->source, 1, &bufid);
+            if (alGetError() != AL_NO_ERROR)
+            {
+                fprintf(stderr, "Error buffering data\n");
+                return 0;
+            }
+        }
+        else //If we are looping
         {
             RestartStream(player, slen, bufid);
-        }
-        if (alGetError() != AL_NO_ERROR)
-        {
-            fprintf(stderr, "Error buffering data\n");
-            return 0;
         }
     }
 
     /* Make sure the source hasn't underrun */
     if (state != AL_PLAYING && state != AL_PAUSED)
     {
+        printf("Hit underrun, cause state is %d",state);
         ALint queued;
 
-        /* If no buffers are queued, playback is finished */
+        /* If no buffers are queued, playback is finished or starved */
         alGetSourcei(player->source, AL_BUFFERS_QUEUED, &queued);
         if (queued == 0)
             return 0;
@@ -255,42 +266,36 @@ StreamPlayer *play(char *filename)
     StreamPlayer *player;
     int i;
 
-    /* Print out usage if no arguments were specified */
-
+    //TODO change InitAL's signature
     if (InitAL(&filename2, &files_to_load_cound) != 0)
         return NULL; // Error
 
     player = NewPlayer();
 
-    /* Play each file listed on the command line */
-    for (i = 0; i < files_to_load_cound; i++)
+    const char *namepart;
+
+    if (!OpenPlayerFile(player, filename))
+        return NULL;
+
+    /* Get the name portion, without the path, for display. */
+    namepart = strrchr(filename, '/');
+    if (namepart || (namepart = strrchr(filename, '\\')))
+        namepart++;
+    else
+        namepart = filename;
+
+    printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(player->format),
+            player->vbinfo->rate);
+    fflush(stdout);
+
+    if (!StartPlayer(player))
     {
-        const char *namepart;
-
-        if (!OpenPlayerFile(player, filename))
-            continue;
-
-        /* Get the name portion, without the path, for display. */
-        namepart = strrchr(filename, '/');
-        if (namepart || (namepart = strrchr(filename, '\\')))
-            namepart++;
-        else
-            namepart = filename;
-
-        printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(player->format),
-               player->vbinfo->rate);
-        fflush(stdout);
-
-        if (!StartPlayer(player))
-        {
-            ClosePlayerFile(player);
-            continue;
-        }
-
-        return player;
+        ClosePlayerFile(player);
+        return NULL;
     }
 
-    return NULL;
+    return player;
+
 }
 void update(StreamPlayer *player)
 {
