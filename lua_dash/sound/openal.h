@@ -1,7 +1,8 @@
 #include <AL/al.h>
 #include <AL/alext.h>
 #include "alhelpers.h"
-#include <sndfile.h>
+#include "vorbis/codec.h"
+//#include <sndfile.h>
 #include <vorbis/vorbisfile.h>
 
 /* Define the number of buffers and buffer size (in milliseconds) to use. 4
@@ -17,10 +18,14 @@ typedef struct StreamPlayer {
     ALuint source;
 
     /* Handle for the audio file */
-    SNDFILE *sndfile;
-    SNDFILE *sndfile2;
-    SF_INFO sfinfo;
-    SF_INFO sfinfo2;
+    OggVorbis_File vbfile;
+    vorbis_info* vbinfo;
+
+
+ //   SNDFILE *sndfile;
+ //   SNDFILE *sndfile2;
+ //   SF_INFO sfinfo;
+ //   SF_INFO sfinfo2;
     short *membuf;
     unsigned char introloop;
     unsigned char looped;

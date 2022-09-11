@@ -1,5 +1,7 @@
 #include "openal.h"
 #include "AL/al.h"
+#include "ogg/os_types.h"
+#include "vorbis/vorbisfile.h"
 /*
  * OpenAL Audio Stream Example
  *
@@ -46,7 +48,9 @@ static StreamPlayer *NewPlayer(void)
 {
     StreamPlayer *player;
 
+    //Init memory for player and vorbisfile
     player = calloc(1, sizeof(*player));
+//    player->vbfile = calloc(1,sizeof(OggVorbis_File));
     // Set the introloop so that we load two clips.
     assert(player != NULL);
 
@@ -86,66 +90,41 @@ static void DeletePlayer(StreamPlayer *player)
  * it will be closed first. */
 static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 {
-    player->introloop = 1;
-    player->looped = 0;
+    puts("Did I get here?");
     size_t frame_size;
 
     ClosePlayerFile(player);
 
     /* Open the audio file and check that it's usable. */
-    if (player->introloop)
+    int result = ov_fopen(filename, &player->vbfile);
+    if (result !=0)
     {
-        char intro[] = "_i.ogg";
-        char loop[] = "_l.ogg";
-        char intro_name[50];
-        char loop_name[50];
-        strcpy(intro_name, filename);
-        strcat(intro_name, intro);
-        strcpy(loop_name, filename);
-        strcat(loop_name, loop);
-        printf("Introname is %s and loop name is %s\n", intro_name, loop_name);
-        player->sndfile = sf_open(intro_name, SFM_READ, &player->sfinfo);
-        player->sndfile2 = sf_open(loop_name, SFM_READ, &player->sfinfo2);
-        if (!player->sndfile || !player->sndfile2)
-        {
-            fprintf(stderr, "Could not open audio in %s: %s\n", filename, sf_strerror(NULL));
-            return 0;
-        }
+        fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
+        return 0;
     }
-    else // Not introloop
+    player->vbinfo = ov_info(&player->vbfile, -1);
+    if(!player->vbinfo)
     {
-        player->sndfile = sf_open(filename, SFM_READ, &player->sfinfo);
-        if (!player->sndfile)
-        {
-            fprintf(stderr, "Could not open audio in %s: %s\n", filename, sf_strerror(NULL));
-            return 0;
-        }
+        puts("Vbinfo is null somehow");
     }
 
     /* Get the sound format, and figure out the OpenAL format */
-    if (player->sfinfo.channels == 1)
+    if (player->vbinfo->channels == 1)
         player->format = AL_FORMAT_MONO16;
-    else if (player->sfinfo.channels == 2)
+    else if (player->vbinfo->channels == 2)
         player->format = AL_FORMAT_STEREO16;
-    else if (player->sfinfo.channels == 3)
-    {
-        if (sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
-            player->format = AL_FORMAT_BFORMAT2D_16;
-    }
-    else if (player->sfinfo.channels == 4)
-    {
-        if (sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
-            player->format = AL_FORMAT_BFORMAT3D_16;
-    }
     if (!player->format)
     {
-        fprintf(stderr, "Unsupported channel count: %d\n", player->sfinfo.channels);
-        sf_close(player->sndfile);
-        player->sndfile = NULL;
+        fprintf(stderr, "Unsupported channel count: %d\n", player->vbinfo->channels);
+        ov_clear(&player->vbfile);
+        //player->sndfile = NULL;
         return 0;
     }
+    puts("Got here");
+  // data_len is the amount of data to read, allocate said data space
+  // this is calculated by (samples * channels * 2 (aka 16bits))
 
-    frame_size = (size_t)(BUFFER_SAMPLES * player->sfinfo.channels) * sizeof(short);
+    frame_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
     player->membuf = malloc(frame_size);
     return 1;
 }
@@ -153,9 +132,9 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 /* Closes the audio file stream */
 static void ClosePlayerFile(StreamPlayer *player)
 {
-    if (player->sndfile)
-        sf_close(player->sndfile);
-    player->sndfile = NULL;
+//    if (&player->vbfile)
+//        ov_clear(&player->vbfile);
+//    player->vbfile = NULL;
 
     free(player->membuf);
     player->membuf = NULL;
@@ -174,13 +153,11 @@ static int StartPlayer(StreamPlayer *player)
     for (i = 0; i < NUM_BUFFERS; i++)
     {
         /* Get some data to give it to the buffer */
-        sf_count_t slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
-        if (slen < 1)
-            break;
 
-        slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
+        int sel = 0;
+        long slen = ov_read(&player->vbfile, (char*)player->membuf, BUFFER_SAMPLES, 0, sizeof(short), 1, 0);
         alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)slen,
-                     player->sfinfo.samplerate);
+                     player->vbinfo->rate);
     }
     if (alGetError() != AL_NO_ERROR)
     {
@@ -199,25 +176,12 @@ static int StartPlayer(StreamPlayer *player)
 
     return 1;
 }
-static int RestartStream(StreamPlayer *player, sf_count_t slen, ALuint bufid)
+static int RestartStream(StreamPlayer *player, long slen, ALuint bufid)
 {
-    if (player->introloop)
-    {
-        puts("Restarted introloop");
-        int bro = sf_close(player->sndfile);
-
-        player->looped = 1;
-        sf_seek(player->sndfile2, 0, SEEK_SET);
-    }
-    else
-    {
-        puts("Restarted loop");
-        sf_seek(player->sndfile, 0, SEEK_SET);
-    }
-
-    slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
+    puts("Restarted loop");
+    ov_time_seek_lap(&player->vbfile, 0.0);
     alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                 player->sfinfo.samplerate);
+                 player->vbinfo->rate);
     alSourceQueueBuffers(player->source, 1, &bufid);
 
     return 0;
@@ -236,29 +200,20 @@ static int UpdatePlayer(StreamPlayer *player)
         return 0;
     }
 
-    const size_t frame_size = player->sfinfo.channels * sizeof(float);
-    // TODO there actually was some loss of precision here.
-    // double current_buffer_playtime = ((((double)pos + start_offset)/frame_size) / ((double)player->sfinfo.samplerate) + player->current_playtime);
-    // printf("The total playtime is %f\n",current_buffer_playtime);
-
     /* Unqueue and handle each processed buffer */
     while (processed > 0)
     {
         ALuint bufid;
-        sf_count_t slen;
+        long slen;
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
         /* Read the next chunk of data, refill the buffer, and queue it
          * back on the source */
-        if (!player->looped)
-            slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
-        else
-            slen = sf_readf_short(player->sndfile2, player->membuf, BUFFER_SAMPLES);
+        slen = ov_read(&player->vbfile, (char*)player->membuf, BUFFER_SAMPLES, 0, sizeof(short), 1, 0);
         if (slen > 0)
         {
-            slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
             alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                         player->sfinfo.samplerate);
+                         player->vbinfo->rate);
             alSourceQueueBuffers(player->source, 1, &bufid);
         }
         else
@@ -322,8 +277,8 @@ StreamPlayer *play(char *filename)
         else
             namepart = filename;
 
-        printf("Playing: %s (%s, %dhz)\n", namepart, FormatName(player->format),
-               player->sfinfo.samplerate);
+        printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(player->format),
+               player->vbinfo->rate);
         fflush(stdout);
 
         if (!StartPlayer(player))

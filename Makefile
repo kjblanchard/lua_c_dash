@@ -28,7 +28,7 @@ DEPFLAGS = -MMD -MP -MF $@.d
 # Include the dependency tracking files
 -include $(DEP_FILES)
 SCRIPTS = ./lua_dash/*.lua
-LDFLAGS = `sdl2-config --cflags --libs` `pkg-config --libs openal` `pkg-config --libs sndfile` `pkg-config --libs lua`
+LDFLAGS = `sdl2-config --cflags --libs` `pkg-config --libs openal` `pkg-config --libs sndfile` `pkg-config --libs lua` `pkg-config --libs vorbisfile`
 CFLAGS = -std=c99
 
 
