@@ -1,5 +1,5 @@
 #include "openal.h"
-#include "sndfile.h"
+#include "AL/al.h"
 /*
  * OpenAL Audio Stream Example
  *
@@ -32,10 +32,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
-
-
 static StreamPlayer *NewPlayer(void);
 static void DeletePlayer(StreamPlayer *player);
 static int OpenPlayerFile(StreamPlayer *player, const char *filename);
@@ -51,6 +47,7 @@ static StreamPlayer *NewPlayer(void)
     StreamPlayer *player;
 
     player = calloc(1, sizeof(*player));
+    // Set the introloop so that we load two clips.
     assert(player != NULL);
 
     /* Generate the buffers and source */
@@ -78,46 +75,69 @@ static void DeletePlayer(StreamPlayer *player)
 
     alDeleteSources(1, &player->source);
     alDeleteBuffers(NUM_BUFFERS, player->buffers);
-    if(alGetError() != AL_NO_ERROR)
+    if (alGetError() != AL_NO_ERROR)
         fprintf(stderr, "Failed to delete object IDs\n");
 
     memset(player, 0, sizeof(*player));
     free(player);
 }
 
-
 /* Opens the first audio stream of the named file. If a file is already open,
  * it will be closed first. */
 static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 {
+    player->introloop = 1;
+    player->looped = 0;
     size_t frame_size;
 
     ClosePlayerFile(player);
 
     /* Open the audio file and check that it's usable. */
-    player->sndfile = sf_open(filename, SFM_READ, &player->sfinfo);
-    if(!player->sndfile)
+    if (player->introloop)
     {
-        fprintf(stderr, "Could not open audio in %s: %s\n", filename, sf_strerror(NULL));
-        return 0;
+        char intro[] = "_i.ogg";
+        char loop[] = "_l.ogg";
+        char intro_name[50];
+        char loop_name[50];
+        strcpy(intro_name, filename);
+        strcat(intro_name, intro);
+        strcpy(loop_name, filename);
+        strcat(loop_name, loop);
+        printf("Introname is %s and loop name is %s\n", intro_name, loop_name);
+        player->sndfile = sf_open(intro_name, SFM_READ, &player->sfinfo);
+        player->sndfile2 = sf_open(loop_name, SFM_READ, &player->sfinfo2);
+        if (!player->sndfile || !player->sndfile2)
+        {
+            fprintf(stderr, "Could not open audio in %s: %s\n", filename, sf_strerror(NULL));
+            return 0;
+        }
+    }
+    else // Not introloop
+    {
+        player->sndfile = sf_open(filename, SFM_READ, &player->sfinfo);
+        if (!player->sndfile)
+        {
+            fprintf(stderr, "Could not open audio in %s: %s\n", filename, sf_strerror(NULL));
+            return 0;
+        }
     }
 
     /* Get the sound format, and figure out the OpenAL format */
-    if(player->sfinfo.channels == 1)
+    if (player->sfinfo.channels == 1)
         player->format = AL_FORMAT_MONO16;
-    else if(player->sfinfo.channels == 2)
+    else if (player->sfinfo.channels == 2)
         player->format = AL_FORMAT_STEREO16;
-    else if(player->sfinfo.channels == 3)
+    else if (player->sfinfo.channels == 3)
     {
-        if(sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
+        if (sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
             player->format = AL_FORMAT_BFORMAT2D_16;
     }
-    else if(player->sfinfo.channels == 4)
+    else if (player->sfinfo.channels == 4)
     {
-        if(sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
+        if (sf_command(player->sndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
             player->format = AL_FORMAT_BFORMAT3D_16;
     }
-    if(!player->format)
+    if (!player->format)
     {
         fprintf(stderr, "Unsupported channel count: %d\n", player->sfinfo.channels);
         sf_close(player->sndfile);
@@ -127,21 +147,19 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 
     frame_size = (size_t)(BUFFER_SAMPLES * player->sfinfo.channels) * sizeof(short);
     player->membuf = malloc(frame_size);
-
     return 1;
 }
 
 /* Closes the audio file stream */
 static void ClosePlayerFile(StreamPlayer *player)
 {
-    if(player->sndfile)
+    if (player->sndfile)
         sf_close(player->sndfile);
     player->sndfile = NULL;
 
     free(player->membuf);
     player->membuf = NULL;
 }
-
 
 /* Prebuffers some audio from the file, and starts playing the source */
 static int StartPlayer(StreamPlayer *player)
@@ -153,17 +171,18 @@ static int StartPlayer(StreamPlayer *player)
     alSourcei(player->source, AL_BUFFER, 0);
 
     /* Fill the buffer queue */
-    for(i = 0;i < NUM_BUFFERS;i++)
+    for (i = 0; i < NUM_BUFFERS; i++)
     {
         /* Get some data to give it to the buffer */
         sf_count_t slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
-        if(slen < 1) break;
+        if (slen < 1)
+            break;
 
         slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
         alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)slen,
-            player->sfinfo.samplerate);
+                     player->sfinfo.samplerate);
     }
-    if(alGetError() != AL_NO_ERROR)
+    if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error buffering for playback\n");
         return 0;
@@ -172,7 +191,7 @@ static int StartPlayer(StreamPlayer *player)
     /* Now queue and start playback! */
     alSourceQueueBuffers(player->source, i, player->buffers);
     alSourcePlay(player->source);
-    if(alGetError() != AL_NO_ERROR)
+    if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error starting playback\n");
         return 0;
@@ -180,66 +199,91 @@ static int StartPlayer(StreamPlayer *player)
 
     return 1;
 }
+static int RestartStream(StreamPlayer *player, sf_count_t slen, ALuint bufid)
+{
+    if (player->introloop)
+    {
+        puts("Restarted introloop");
+        int bro = sf_close(player->sndfile);
+
+        player->looped = 1;
+        sf_seek(player->sndfile2, 0, SEEK_SET);
+    }
+    else
+    {
+        puts("Restarted loop");
+        sf_seek(player->sndfile, 0, SEEK_SET);
+    }
+
+    slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
+    alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
+                 player->sfinfo.samplerate);
+    alSourceQueueBuffers(player->source, 1, &bufid);
+
+    return 0;
+}
 
 static int UpdatePlayer(StreamPlayer *player)
 {
-    ALint processed, state;
-
+    ALint processed, state, seconds;
     /* Get relevant source info */
     alGetSourcei(player->source, AL_SOURCE_STATE, &state);
     alGetSourcei(player->source, AL_BUFFERS_PROCESSED, &processed);
-    if(alGetError() != AL_NO_ERROR)
+    alGetSourcei(player->source, AL_BUFFER, &seconds);
+    if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error checking source state\n");
         return 0;
     }
 
+    const size_t frame_size = player->sfinfo.channels * sizeof(float);
+    // TODO there actually was some loss of precision here.
+    // double current_buffer_playtime = ((((double)pos + start_offset)/frame_size) / ((double)player->sfinfo.samplerate) + player->current_playtime);
+    // printf("The total playtime is %f\n",current_buffer_playtime);
+
     /* Unqueue and handle each processed buffer */
-    while(processed > 0)
+    while (processed > 0)
     {
         ALuint bufid;
         sf_count_t slen;
-
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
-
         /* Read the next chunk of data, refill the buffer, and queue it
          * back on the source */
-        slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
-        if(slen > 0)
+        if (!player->looped)
+            slen = sf_readf_short(player->sndfile, player->membuf, BUFFER_SAMPLES);
+        else
+            slen = sf_readf_short(player->sndfile2, player->membuf, BUFFER_SAMPLES);
+        if (slen > 0)
         {
             slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
             alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                player->sfinfo.samplerate);
+                         player->sfinfo.samplerate);
             alSourceQueueBuffers(player->source, 1, &bufid);
         }
-        else{
-            sf_seek(player->sndfile, 0, SEEK_SET);
-            slen *= player->sfinfo.channels * (sf_count_t)sizeof(short);
-            alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
-                player->sfinfo.samplerate);
-            alSourceQueueBuffers(player->source, 1, &bufid);
+        else
+        {
+            RestartStream(player, slen, bufid);
         }
-        if(alGetError() != AL_NO_ERROR)
+        if (alGetError() != AL_NO_ERROR)
         {
             fprintf(stderr, "Error buffering data\n");
             return 0;
         }
-
     }
 
     /* Make sure the source hasn't underrun */
-    if(state != AL_PLAYING && state != AL_PAUSED)
+    if (state != AL_PLAYING && state != AL_PAUSED)
     {
         ALint queued;
 
         /* If no buffers are queued, playback is finished */
         alGetSourcei(player->source, AL_BUFFERS_QUEUED, &queued);
-        if(queued == 0)
+        if (queued == 0)
             return 0;
 
         alSourcePlay(player->source);
-        if(alGetError() != AL_NO_ERROR)
+        if (alGetError() != AL_NO_ERROR)
         {
             fprintf(stderr, "Error restarting playback\n");
             return 0;
@@ -249,57 +293,57 @@ static int UpdatePlayer(StreamPlayer *player)
     return 1;
 }
 
-
-StreamPlayer* play(char* filename)
+StreamPlayer *play(char *filename)
 {
-    char** filename2 = &filename;
+    char **filename2 = &filename;
     int files_to_load_cound = 1;
     StreamPlayer *player;
     int i;
 
     /* Print out usage if no arguments were specified */
 
-    if(InitAL(&filename2, &files_to_load_cound) != 0)
-        return NULL; //Error
+    if (InitAL(&filename2, &files_to_load_cound) != 0)
+        return NULL; // Error
 
     player = NewPlayer();
 
     /* Play each file listed on the command line */
-    for(i = 0;i < files_to_load_cound;i++)
+    for (i = 0; i < files_to_load_cound; i++)
     {
         const char *namepart;
 
-        if(!OpenPlayerFile(player, filename))
+        if (!OpenPlayerFile(player, filename))
             continue;
 
         /* Get the name portion, without the path, for display. */
         namepart = strrchr(filename, '/');
-        if(namepart || (namepart=strrchr(filename, '\\')))
+        if (namepart || (namepart = strrchr(filename, '\\')))
             namepart++;
         else
             namepart = filename;
 
         printf("Playing: %s (%s, %dhz)\n", namepart, FormatName(player->format),
-            player->sfinfo.samplerate);
+               player->sfinfo.samplerate);
         fflush(stdout);
 
-        if(!StartPlayer(player))
+        if (!StartPlayer(player))
         {
             ClosePlayerFile(player);
             continue;
         }
 
         return player;
-
     }
 
     return NULL;
 }
-void update(StreamPlayer* player) {
+void update(StreamPlayer *player)
+{
     UpdatePlayer(player);
 }
 
-int close(StreamPlayer* player) {
+int close(StreamPlayer *player)
+{
 
     ClosePlayerFile(player);
     printf("Done.\n");
@@ -310,5 +354,4 @@ int close(StreamPlayer* player) {
 
     CloseAL();
     return 0;
-
 }

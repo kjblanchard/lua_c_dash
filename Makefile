@@ -51,6 +51,7 @@ rebuild: $(OBJ_FILES)
 	echo Linking $(notdir $@)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)
+	cp -r ./lua_dash/assets $(BUILD_FOLDER)
 
 run:
 	@./$(BINARY_NAME)

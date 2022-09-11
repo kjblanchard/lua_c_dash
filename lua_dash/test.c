@@ -33,7 +33,7 @@ int main()
     World* world = CreateWorld();
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
-    StreamPlayer* player =  play("build/finish.ogg");
+    StreamPlayer* player =  play("build/assets/victory");
     while (world->is_running) 
     {
         Uint64 current = SDL_GetTicks64();
