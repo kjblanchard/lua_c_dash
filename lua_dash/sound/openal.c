@@ -52,6 +52,8 @@ static StreamPlayer *NewPlayer(void)
     //    player->vbfile = calloc(1,sizeof(OggVorbis_File));
     assert(player != NULL);
 
+    player->loop_point_begin = 5.176;
+
     /* Generate the buffers and source */
     alGenBuffers(NUM_BUFFERS, player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
@@ -114,7 +116,8 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
     }
     // data_read_size is the size of data to read, allocate said data space
     // this is calculated by (samples * channels * 2 (aka 16bits))
-    data_read_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
+    //data_read_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
+    data_read_size = (size_t)(BUFFER_SAMPLES);
     printf("Data reading size is %ld bytes \n",data_read_size);
     player->membuf = malloc(data_read_size);
     return 1;
@@ -175,7 +178,7 @@ static int StartPlayer(StreamPlayer *player)
 }
 static int RestartStream(StreamPlayer *player, long slen, ALuint bufid)
 {
-    ov_time_seek_lap(&player->vbfile, 0.0);
+    ov_time_seek_lap(&player->vbfile, player->loop_point_begin);
     alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
             player->vbinfo->rate);
     alSourceQueueBuffers(player->source, 1, &bufid);

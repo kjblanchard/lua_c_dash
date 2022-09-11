@@ -34,7 +34,7 @@ int main()
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
     ProcessInput();
-    StreamPlayer* player =  play("build/assets/loop.ogg");
+    StreamPlayer* player =  play("build/assets/victory.ogg");
     while (world->is_running) 
     {
         Uint64 current = SDL_GetTicks64();

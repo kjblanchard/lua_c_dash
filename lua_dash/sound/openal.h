@@ -16,6 +16,7 @@ typedef struct StreamPlayer {
     /* These are the buffers and source to play out through OpenAL with */
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
+    double loop_point_begin;
 
     /* Handle for the audio file */
     OggVorbis_File vbfile;
