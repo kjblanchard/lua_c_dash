@@ -10,6 +10,7 @@
  * queue last for almost one second at 44.1khz. */
 #define NUM_BUFFERS 4
 #define BUFFER_SAMPLES 8192
+#define VORBIS_REQUEST_SIZE 4096
 
 
 typedef struct StreamPlayer {

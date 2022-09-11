@@ -71,6 +71,12 @@ static StreamPlayer *NewPlayer(void)
     return player;
 }
 
+typedef enum BufferFillFlags {
+    Buff_Fill_Default,
+    Buff_Fill_MusicEnded,
+    Buff_Fill_MusicHitLoopPoint
+} BufferFillFlags;
+
 /* Destroys a player object, deleting the source and buffers. No error handling
  * since these calls shouldn't fail with a properly-made player object. */
 static void DeletePlayer(StreamPlayer *player)
@@ -134,6 +140,37 @@ static void ClosePlayerFile(StreamPlayer *player)
     player->membuf = NULL;
 }
 
+static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
+{
+    //Set the buffer flags to 0, as it is normal
+    *buff_flags = 0;
+    //Set the bytes read to 0, since we didn't read any bytes yet
+    long total_buffer_bytes_read = 0;
+    //Set the max request size to get data from the vorbis file
+    int request_size = VORBIS_REQUEST_SIZE;
+    //Our goal is to read enough bytes to fill up our buffer samples (8kbs), so while we have read less than that, keep loading.
+    //This is due to vorbis reading random amounts, and not the whole size at once.
+    while(total_buffer_bytes_read < BUFFER_SAMPLES)
+    {
+        //Actually read from the file.Notice we offset our memory location(membuf) by the amount of bytes read so that we keep loading more.
+        int current_pass_bytes_read = ov_read(&player->vbfile, (char*)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
+        //If we have read 0 bytes, we are at the end of the song.
+        if(current_pass_bytes_read == 0)
+        {
+            //Set the buffer flags to ended
+            *buff_flags = Buff_Fill_MusicEnded;
+            //Stop filling the buffer and exit the while loop
+            break;
+        }
+        //Update the amount of bytes read for this buffer
+        total_buffer_bytes_read += current_pass_bytes_read;
+        //Update the request size.  Remember our goal is to read the full buffer.
+        request_size = (total_buffer_bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - total_buffer_bytes_read;
+    }
+
+    return total_buffer_bytes_read;
+}
+
 /* Prebuffers some audio from the file, and starts playing the source */
 static int StartPlayer(StreamPlayer *player)
 {
@@ -144,20 +181,14 @@ static int StartPlayer(StreamPlayer *player)
     alSourcei(player->source, AL_BUFFER, 0);
 
     /* Fill the buffer queue */
+    BufferFillFlags buf_flags;
     for (i = 0; i < NUM_BUFFERS; i++)
     {
-        //Read data to load into a buffer.
-        long bytes_read = 0;
-        int request_size = 4096;
-        while(bytes_read < BUFFER_SAMPLES){
-            bytes_read +=  ov_read(&player->vbfile, (char*)player->membuf + bytes_read, request_size, 0, sizeof(short), 1, 0);
-            request_size = (bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - bytes_read;
-        }
-
-        int sel = 0;
+        long bytes_read = LoadBufferData(player, &buf_flags);
         alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)bytes_read,
                 player->vbinfo->rate);
     }
+
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error buffering for playback\n");
@@ -207,23 +238,9 @@ static int UpdatePlayer(StreamPlayer *player)
         long slen = 0;
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
-        /* Read the next chunk of data, refill the buffer, and queue it
-         * back on the source */
-        //Read data to load into a buffer.
-        long bytes_read = 0;
-        int request_size = 4096;
-        unsigned char ended = 0;
-        while(bytes_read < BUFFER_SAMPLES){
-            int stream_bytes_read = ov_read(&player->vbfile, (char*)player->membuf + bytes_read, request_size, 0, sizeof(short), 1, 0);
-            if(stream_bytes_read == 0)
-            {
-                ended = 1;
-                break;
-            }
-            bytes_read += stream_bytes_read;
-            request_size = (bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - bytes_read;
-        }
-        if (!ended)
+        BufferFillFlags buf_flags = 0;
+        long bytes_read = LoadBufferData(player, &buf_flags);
+        if (buf_flags != Buff_Fill_MusicEnded)
         {
             alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
                     player->vbinfo->rate);
