@@ -18,6 +18,8 @@ typedef struct StreamPlayer {
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
     double loop_point_begin;
+    ogg_int64_t loop_point_end;
+    ogg_int64_t total_bytes_read_this_loop;
 
     /* Handle for the audio file */
     OggVorbis_File vbfile;

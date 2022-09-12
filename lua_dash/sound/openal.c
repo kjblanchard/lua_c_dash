@@ -128,6 +128,12 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
     player->membuf = malloc(data_read_size);
 
 
+    //The pcm total that we need is the end of the file, multiplied by the number of channels multiplied by the size of a word.
+    //ov_time_seek(&player->vbfile, 10.0);
+    player->loop_point_end = ov_pcm_total(&player->vbfile,-1) * player->vbinfo->channels * sizeof(short);
+    //ov_time_seek(&player->vbfile, 0.0);
+
+
     //Figure out the end loop point. For now, we will use the end of the song.
     return 1;
 }
@@ -135,10 +141,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 /* Closes the audio file stream */
 static void ClosePlayerFile(StreamPlayer *player)
 {
-    //    if (&player->vbfile)
-    //        ov_clear(&player->vbfile);
-    //    player->vbfile = NULL;
-
     free(player->membuf);
     player->membuf = NULL;
 }
@@ -155,6 +157,16 @@ static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
     //This is due to vorbis reading random amounts, and not the whole size at once.
     while(total_buffer_bytes_read < BUFFER_SAMPLES)
     {
+        //Update the request size.  Remember our goal is to read the full buffer.
+        request_size = (total_buffer_bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - total_buffer_bytes_read;
+        //Update the request size.  Remember we don't want to go past the loop end point.
+        request_size = (total_buffer_bytes_read + request_size + player->total_bytes_read_this_loop <= player->loop_point_end) ? request_size : player->loop_point_end - (total_buffer_bytes_read + player->total_bytes_read_this_loop);
+        if(request_size == 0)
+        {
+            *buff_flags = Buff_Fill_MusicHitLoopPoint;
+            break;
+            //We are at the end of the loop point.
+        }
         //Actually read from the file.Notice we offset our memory location(membuf) by the amount of bytes read so that we keep loading more.
         int current_pass_bytes_read = ov_read(&player->vbfile, (char*)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
         //If we have read 0 bytes, we are at the end of the song.
@@ -167,9 +179,9 @@ static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
         }
         //Update the amount of bytes read for this buffer
         total_buffer_bytes_read += current_pass_bytes_read;
-        //Update the request size.  Remember our goal is to read the full buffer.
-        request_size = (total_buffer_bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - total_buffer_bytes_read;
     }
+    //Add the bytes read to the current bytes read for the entire loop, used for tracking the current loading point.
+    player->total_bytes_read_this_loop += total_buffer_bytes_read;
 
     return total_buffer_bytes_read;
 }
@@ -212,7 +224,9 @@ static int StartPlayer(StreamPlayer *player)
 }
 static int RestartStream(StreamPlayer *player, ALuint bufid)
 {
+    ogg_int64_t pcm_time = ov_pcm_tell(&player->vbfile);
     ov_time_seek_lap(&player->vbfile, player->loop_point_begin);
+    player->total_bytes_read_this_loop = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
     alBufferData(bufid, player->format, player->membuf, (ALsizei)0,
             player->vbinfo->rate);
     alSourceQueueBuffers(player->source, 1, &bufid);
@@ -255,9 +269,11 @@ static int UpdatePlayer(StreamPlayer *player)
                 }
                 break;
             case Buff_Fill_MusicEnded:
-                RestartStream(player, bufid);
+     //           RestartStream(player, bufid);
                 break;
             case Buff_Fill_MusicHitLoopPoint:
+                puts("Restarting the stream from loop point");
+                RestartStream(player,bufid);
                 break;
         }
     }
