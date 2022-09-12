@@ -28,6 +28,7 @@ DEPFLAGS = -MMD -MP -MF $@.d
 # Include the dependency tracking files
 -include $(DEP_FILES)
 SCRIPTS = ./lua_dash/*.lua
+# Compile everything as static, except openal due to LGPL.
 LDFLAGS = `sdl2-config --cflags --static-libs --libs` `pkg-config --libs openal` -L/usr/local/lib -llua -lm  `pkg-config --libs --static vorbisfile`
 CFLAGS = -std=c99
 
@@ -56,8 +57,11 @@ rebuild: $(OBJ_FILES)
 run:
 	@./$(BINARY_NAME)
 
+lldb:
+	@lldb ./$(BINARY_NAME)
+
 debug: CFLAGS += -g
-debug: clean | rebuild
+debug: clean rebuild lldb
 
 clean:
 	@ - rm -rf build
