@@ -17,7 +17,7 @@ typedef struct StreamPlayer {
     /* These are the buffers and source to play out through OpenAL with */
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
-    double loop_point_begin;
+    ogg_int64_t loop_point_begin;
     ogg_int64_t loop_point_end;
     ogg_int64_t total_bytes_read_this_loop;
 

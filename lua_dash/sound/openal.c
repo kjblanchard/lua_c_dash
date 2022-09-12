@@ -52,7 +52,6 @@ static StreamPlayer *NewPlayer(void)
     //    player->vbfile = calloc(1,sizeof(OggVorbis_File));
     assert(player != NULL);
 
-    player->loop_point_begin = 5.176;
 
     /* Generate the buffers and source */
     alGenBuffers(NUM_BUFFERS, player->buffers);
@@ -128,10 +127,13 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
     player->membuf = malloc(data_read_size);
 
 
+    //Get the positions to loop at.
+    ov_time_seek(&player->vbfile, 5.179);
+    player->loop_point_begin = ov_pcm_tell(&player->vbfile);
     //The pcm total that we need is the end of the file, multiplied by the number of channels multiplied by the size of a word.
-    //ov_time_seek(&player->vbfile, 10.0);
-    player->loop_point_end = ov_pcm_total(&player->vbfile,-1) * player->vbinfo->channels * sizeof(short);
-    //ov_time_seek(&player->vbfile, 0.0);
+    ov_time_seek_lap(&player->vbfile, 28.219);
+    player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
+    ov_raw_seek(&player->vbfile, 0);
 
 
     //Figure out the end loop point. For now, we will use the end of the song.
@@ -222,15 +224,17 @@ static int StartPlayer(StreamPlayer *player)
 
     return 1;
 }
-static int RestartStream(StreamPlayer *player, ALuint bufid)
+/**
+ * @brief Restart the stream from the loop point.
+ *
+ * @param player Pointer to a stream player
+ *
+ * @return 
+ */
+static int RestartStream(StreamPlayer *player)
 {
-    ogg_int64_t pcm_time = ov_pcm_tell(&player->vbfile);
-    ov_time_seek_lap(&player->vbfile, player->loop_point_begin);
+    ov_pcm_seek_lap(&player->vbfile, player->loop_point_begin);
     player->total_bytes_read_this_loop = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
-    alBufferData(bufid, player->format, player->membuf, (ALsizei)0,
-            player->vbinfo->rate);
-    alSourceQueueBuffers(player->source, 1, &bufid);
-
     return 0;
 }
 
@@ -272,16 +276,19 @@ static int UpdatePlayer(StreamPlayer *player)
      //           RestartStream(player, bufid);
                 break;
             case Buff_Fill_MusicHitLoopPoint:
-                puts("Restarting the stream from loop point");
-                RestartStream(player,bufid);
+                alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
+                        player->vbinfo->rate);
+                alSourceQueueBuffers(player->source, 1, &bufid);
+                RestartStream(player);
                 break;
         }
+        ALint buffers_queued;
+        alGetSourcei(player->source, AL_BUFFERS_QUEUED, &buffers_queued);
     }
 
     /* Make sure the source hasn't underrun */
     if (state != AL_PLAYING && state != AL_PAUSED)
     {
-        printf("Hit underrun, cause state is %d",state);
         ALint queued;
 
         /* If no buffers are queued, playback is finished or starved */
