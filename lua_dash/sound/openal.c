@@ -260,35 +260,24 @@ static int UpdatePlayer(StreamPlayer *player)
         processed--;
         BufferFillFlags buf_flags = 0;
         long bytes_read = LoadBufferData(player, &buf_flags);
-        switch (buf_flags) 
+        alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
+                player->vbinfo->rate);
+        alSourceQueueBuffers(player->source, 1, &bufid);
+        if (alGetError() != AL_NO_ERROR)
         {
-            case Buff_Fill_Default:
-                alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
-                        player->vbinfo->rate);
-                alSourceQueueBuffers(player->source, 1, &bufid);
-                if (alGetError() != AL_NO_ERROR)
-                {
-                    fprintf(stderr, "Error buffering data\n");
-                    return 0;
-                }
-                break;
-            case Buff_Fill_MusicEnded:
-     //           RestartStream(player, bufid);
-                break;
-            case Buff_Fill_MusicHitLoopPoint:
-                alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
-                        player->vbinfo->rate);
-                alSourceQueueBuffers(player->source, 1, &bufid);
-                RestartStream(player);
-                break;
+            fprintf(stderr, "Error buffering data\n");
+            return 0;
         }
-        ALint buffers_queued;
-        alGetSourcei(player->source, AL_BUFFERS_QUEUED, &buffers_queued);
+        if(buf_flags == Buff_Fill_MusicEnded || buf_flags == Buff_Fill_MusicHitLoopPoint)
+        {
+                RestartStream(player);
+        }
     }
 
     /* Make sure the source hasn't underrun */
     if (state != AL_PLAYING && state != AL_PAUSED)
     {
+        puts("Just hit underrun, and we really shouldn't");
         ALint queued;
 
         /* If no buffers are queued, playback is finished or starved */

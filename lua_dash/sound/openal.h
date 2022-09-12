@@ -2,7 +2,6 @@
 #include <AL/alext.h>
 #include "alhelpers.h"
 #include "vorbis/codec.h"
-//#include <sndfile.h>
 #include <vorbis/vorbisfile.h>
 
 /* Define the number of buffers and buffer size (in milliseconds) to use. 4
@@ -14,18 +13,14 @@
 
 
 typedef struct StreamPlayer {
-    /* These are the buffers and source to play out through OpenAL with */
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
     ogg_int64_t loop_point_begin;
     ogg_int64_t loop_point_end;
     ogg_int64_t total_bytes_read_this_loop;
-
-    /* Handle for the audio file */
     OggVorbis_File vbfile;
     vorbis_info* vbinfo;
     short *membuf;
-    /* The format of the output stream (sample rate is in sfinfo) */
     ALenum format;
 } StreamPlayer;
 
