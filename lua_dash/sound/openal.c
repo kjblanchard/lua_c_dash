@@ -126,6 +126,9 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
     data_read_size = (size_t)(BUFFER_SAMPLES);
     printf("Data reading size is %ld bytes \n",data_read_size);
     player->membuf = malloc(data_read_size);
+
+
+    //Figure out the end loop point. For now, we will use the end of the song.
     return 1;
 }
 
@@ -207,10 +210,10 @@ static int StartPlayer(StreamPlayer *player)
 
     return 1;
 }
-static int RestartStream(StreamPlayer *player, long slen, ALuint bufid)
+static int RestartStream(StreamPlayer *player, ALuint bufid)
 {
     ov_time_seek_lap(&player->vbfile, player->loop_point_begin);
-    alBufferData(bufid, player->format, player->membuf, (ALsizei)slen,
+    alBufferData(bufid, player->format, player->membuf, (ALsizei)0,
             player->vbinfo->rate);
     alSourceQueueBuffers(player->source, 1, &bufid);
 
@@ -235,25 +238,27 @@ static int UpdatePlayer(StreamPlayer *player)
     {
         printf("Buff was processed, %d\n",++buffs_processed);
         ALuint bufid;
-        long slen = 0;
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
         BufferFillFlags buf_flags = 0;
         long bytes_read = LoadBufferData(player, &buf_flags);
-        if (buf_flags != Buff_Fill_MusicEnded)
+        switch (buf_flags) 
         {
-            alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
-                    player->vbinfo->rate);
-            alSourceQueueBuffers(player->source, 1, &bufid);
-            if (alGetError() != AL_NO_ERROR)
-            {
-                fprintf(stderr, "Error buffering data\n");
-                return 0;
-            }
-        }
-        else //If we are looping
-        {
-            RestartStream(player, slen, bufid);
+            case Buff_Fill_Default:
+                alBufferData(bufid, player->format, player->membuf, (ALsizei)bytes_read,
+                        player->vbinfo->rate);
+                alSourceQueueBuffers(player->source, 1, &bufid);
+                if (alGetError() != AL_NO_ERROR)
+                {
+                    fprintf(stderr, "Error buffering data\n");
+                    return 0;
+                }
+                break;
+            case Buff_Fill_MusicEnded:
+                RestartStream(player, bufid);
+                break;
+            case Buff_Fill_MusicHitLoopPoint:
+                break;
         }
     }
 
