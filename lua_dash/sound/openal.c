@@ -128,10 +128,10 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename)
 
 
     //Get the positions to loop at.
-    ov_time_seek(&player->vbfile, 5.179);
+    ov_time_seek(&player->vbfile, 28.220);
     player->loop_point_begin = ov_pcm_tell(&player->vbfile);
     //The pcm total that we need is the end of the file, multiplied by the number of channels multiplied by the size of a word.
-    ov_time_seek_lap(&player->vbfile, 28.219);
+    ov_time_seek_lap(&player->vbfile, 51.255);
     player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
     ov_raw_seek(&player->vbfile, 0);
 

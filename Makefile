@@ -28,7 +28,7 @@ DEPFLAGS = -MMD -MP -MF $@.d
 # Include the dependency tracking files
 -include $(DEP_FILES)
 SCRIPTS = ./lua_dash/*.lua
-LDFLAGS = `sdl2-config --cflags --libs` `pkg-config --libs openal` `pkg-config --libs sndfile` `pkg-config --libs lua` `pkg-config --libs vorbisfile`
+LDFLAGS = `sdl2-config --cflags --static-libs --libs` `pkg-config --libs openal` -L/usr/local/lib -llua -lm  `pkg-config --libs --static vorbisfile`
 CFLAGS = -std=c99
 
 
@@ -41,7 +41,7 @@ $(BUILD_FOLDER)/%.o: %.c
 
 # OBJ_FILES are prerequisites. Since we're not relying on an implicit rule, we need to
 # explicity list CFLAGS, LDFLAGS, LDLIBS
-# $^ means all prerequisites
+# $^ means all prerequisites28.219
 build: $(OBJ_FILES)
 	echo Linking $(notdir $@)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)

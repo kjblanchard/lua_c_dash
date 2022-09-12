@@ -1,13 +1,39 @@
-*** C_Lua_Dash!
+# Lua Dash!
 
-** This is a project mainly as a learning of C, lua, and using it embedded.  The goal is to build a similar to monogamedash that I had done in c# and c++
+A engine built in C, that you can create a game with lua scripts.  mainly to learn C, and lua.  The goal is to build a similar to monogamedash that I did in c# and c++
 
-** Licenses
-- Lua
-- Sndfile (Using it for vorbis now, remember to normalize)
-- SDL2
-- OpenAlSoft
+**[Trello Board](notyet)**
 
-** Assets
-- Loop Sound - https://freesound.org/people/Xythe/sounds/516911/
+Currently Compiling on  Mac (apple silicon/arm64), eventually I'll compile to others once the project gets big enough.
 
+
+
+## Components
+
+- **SDL2** - Used for low level handling of windows, timers, events, and input.
+- **Make** - Build system
+- **OpenAlSoft** - audio
+- **Tiled** - Used for creating the maps and outputting data for it
+- **Ogg/Vorbis** - Used for audio decoding
+- **[Lua](https://www.lua.org/license.html)** - Scripting / Configuration
+
+## License
+
+All of the licenses that I'm using will be listed here.
+
+### Libraries
+- [SDL2](https://www.libsdl.org) - ZLIB
+- [Lua](https://www.lua.org/license.html) - MIT
+- [OpenAlSoft](https://openal-soft.org) - LGPLv2
+- [Ogg/Vorbis](https://xiph.org/vorbis/) - BSD
+
+### Art
+- [Pixel art](https://pixelfrog-assets.itch.io/pixel-adventure-1) - Creative Commons License
+- [Trampoline Sound](https://freesound.org/people/Breviceps/sounds/493161/) - Creative Commons License
+- [Jump Sound](https://freesound.org/people/se2001/sounds/528568/) - Creative Commons License
+- [Footsteps](https://freesound.org/people/EVRetro/sounds/501102/) - Creative Commons License
+- [End of level Music](https://freesound.org/people/maxmakessounds/sounds/353546) - Creative Commons License
+
+## Authors
+
+- [@Kevin Blanchard](https://www.github.com/kjblanchard)
