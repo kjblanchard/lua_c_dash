@@ -1,45 +1,64 @@
-#include "openal.h"
-#include "AL/al.h"
-#include "ogg/os_types.h"
-#include "vorbis/vorbisfile.h"
-/*
- * OpenAL Audio Stream Example
- *
- * Copyright (c) 2011 by Chris Robinson <chris.kcat@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/* This file contains a relatively simple streaming audio player. */
-
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <AL/al.h>
+#include <ogg/os_types.h>
+#include <vorbis/vorbisfile.h>
+#include "openal.h"
+
+static StreamPlayer* bgm_player;
 
 static StreamPlayer *NewPlayer(void);
 static void DeletePlayer(StreamPlayer *player);
-static int OpenPlayerFile(StreamPlayer *player, const char *filename);
+static int OpenPlayerFile(StreamPlayer *player, const char *filename, double loop_begin, double loop_end);
 static void ClosePlayerFile(StreamPlayer *player);
 static int StartPlayer(StreamPlayer *player);
 static int UpdatePlayer(StreamPlayer *player);
+
+int Initialize()
+{
+    StreamPlayer *player;
+    if (InitAL() != 0)
+        return 0; // Error
+    bgm_player = NewPlayer();
+    return 1;
+}
+static int PreBakeBgm(char* filename, double loop_begin, double loop_end)
+{
+    const char *namepart;
+    if (!OpenPlayerFile(bgm_player,filename, loop_begin, loop_end))
+        return 0;
+
+    /* Get the name portion, without the path, for display. */
+    namepart = strrchr(filename, '/');
+    if (namepart || (namepart = strrchr(filename, '\\')))
+        namepart++;
+    else
+        namepart = filename;
+
+    printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(bgm_player->format),
+            bgm_player->vbinfo->rate);
+    fflush(stdout);
+    return 1;
+
+}
+int PlayBgm(char* filename, double loop_begin, double loop_end)
+{
+    PreBakeBgm(filename,loop_begin,loop_end);
+    if (!StartPlayer(bgm_player))
+    {
+        ClosePlayerFile(bgm_player);
+        return 0;
+    }
+    return 1;
+
+}
+void Update()
+{
+
+}
 
 /* Creates a new player object, and allocates the needed OpenAL source and
  * buffer objects. Error checking is simplified for the purposes of this
@@ -93,7 +112,7 @@ static void DeletePlayer(StreamPlayer *player)
 
 /* Opens the first audio stream of the named file. If a file is already open,
  * it will be closed first. */
-static int OpenPlayerFile(StreamPlayer *player, const char *filename)
+static int OpenPlayerFile(StreamPlayer *player, const char *filename, double loop_begin, double loop_end)
 {
     size_t data_read_size;
 
@@ -254,7 +273,6 @@ static int UpdatePlayer(StreamPlayer *player)
     static int buffs_processed = 0;
     while (processed > 0)
     {
-        printf("Buff was processed, %d\n",++buffs_processed);
         ALuint bufid;
         alSourceUnqueueBuffers(player->source, 1, &bufid);
         processed--;
@@ -296,47 +314,9 @@ static int UpdatePlayer(StreamPlayer *player)
     return 1;
 }
 
-StreamPlayer *play(char *filename)
+void update()
 {
-    char **filename2 = &filename;
-    int files_to_load_cound = 1;
-    StreamPlayer *player;
-    int i;
-
-    //TODO change InitAL's signature
-    if (InitAL(&filename2, &files_to_load_cound) != 0)
-        return NULL; // Error
-
-    player = NewPlayer();
-
-    const char *namepart;
-
-    if (!OpenPlayerFile(player, filename))
-        return NULL;
-
-    /* Get the name portion, without the path, for display. */
-    namepart = strrchr(filename, '/');
-    if (namepart || (namepart = strrchr(filename, '\\')))
-        namepart++;
-    else
-        namepart = filename;
-
-    printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(player->format),
-            player->vbinfo->rate);
-    fflush(stdout);
-
-    if (!StartPlayer(player))
-    {
-        ClosePlayerFile(player);
-        return NULL;
-    }
-
-    return player;
-
-}
-void update(StreamPlayer *player)
-{
-    UpdatePlayer(player);
+    UpdatePlayer(bgm_player);
 }
 
 int close(StreamPlayer *player)

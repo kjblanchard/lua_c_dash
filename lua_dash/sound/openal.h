@@ -24,6 +24,10 @@ typedef struct StreamPlayer {
     ALenum format;
 } StreamPlayer;
 
-StreamPlayer* play(char* filename);
-int close(StreamPlayer* player);
-void update(StreamPlayer* player);
+
+int Initialize();
+int PlayBgm(char* filename, double loop_begin, double loop_end);
+void Update();
+
+int close();
+void update();

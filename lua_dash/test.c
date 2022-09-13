@@ -34,17 +34,19 @@ int main()
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
     ProcessInput();
-    StreamPlayer* player =  play("build/assets/victory2.ogg");
+    Initialize();
+    //StreamPlayer* player =  play("build/assets/victory2.ogg");
+    PlayBgm("build/assets/victory2.ogg",28.220,51.225);
     while (world->is_running) 
     {
         Uint64 current = SDL_GetTicks64();
         Uint64 elapsed = current - previous;
         previous = current;
         ProcessInput();
-        update(player);
+        update();
         SDL_RenderPresent(world->graphics->game_renderer);
     }
-    close(player);
+    close();
     SDL_Quit();
     return 0;
 }
