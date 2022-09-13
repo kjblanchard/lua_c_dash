@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @brief Load the Sound backend, this must be called before any other functions are available.
  *
@@ -37,6 +39,7 @@ int LoadSoundConfigFile();
 /**
  * @brief This should be called every frame.  Updates the BGM sound and such.
  */
-void Update();
+void UpdateSound();
 
+void CloseSound();
 

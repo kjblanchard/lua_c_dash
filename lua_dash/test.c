@@ -1,13 +1,12 @@
 #include <string.h>
 #include <SDL2/SDL.h>
-#include "SDL2/SDL_render.h"
-#include "SDL2/SDL_stdinc.h"
-#include "SDL2/SDL_timer.h"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_timer.h>
 #include "base/Point.h"
 #include "core/GraphicsDevice.h"
 #include "core/world.h"
-#include "sound/alhelpers.h"
-#include "sound/openal.h"
+#include "sound/sound.h"
 
 
 static void ProcessInput()
@@ -35,19 +34,19 @@ int main()
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
     ProcessInput();
-    InitializeAl();
+    InitializeSound();
     //StreamPlayer* player =  play("build/assets/victory2.ogg");
-    PlayBgm("build/assets/victory2.ogg",28.220,51.255);
+    PlayBgm(0);
     while (world->is_running) 
     {
         Uint64 current = SDL_GetTicks64();
         Uint64 elapsed = current - previous;
         previous = current;
         ProcessInput();
-        UpdateAl();
+        UpdateSound();
         SDL_RenderPresent(world->graphics->game_renderer);
     }
-    CloseAL();
+    CloseSound();
     SDL_Quit();
     return 0;
 }
