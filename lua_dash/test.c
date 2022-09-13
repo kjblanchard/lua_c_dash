@@ -6,6 +6,7 @@
 #include "base/Point.h"
 #include "core/GraphicsDevice.h"
 #include "core/world.h"
+#include "sound/alhelpers.h"
 #include "sound/openal.h"
 
 
@@ -34,19 +35,19 @@ int main()
     Uint64 previous = SDL_GetTicks64();
     double lag = 0.0;
     ProcessInput();
-    Initialize();
+    InitializeAl();
     //StreamPlayer* player =  play("build/assets/victory2.ogg");
-    PlayBgm("build/assets/victory2.ogg",28.220,51.225);
+    PlayBgm("build/assets/victory2.ogg",28.220,51.255);
     while (world->is_running) 
     {
         Uint64 current = SDL_GetTicks64();
         Uint64 elapsed = current - previous;
         previous = current;
         ProcessInput();
-        update();
+        UpdateAl();
         SDL_RenderPresent(world->graphics->game_renderer);
     }
-    close();
+    CloseAL();
     SDL_Quit();
     return 0;
 }

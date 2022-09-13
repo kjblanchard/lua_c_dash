@@ -1,19 +1,25 @@
 #include <AL/al.h>
 #include <AL/alext.h>
-#include "alhelpers.h"
-#include "vorbis/codec.h"
 #include <vorbis/vorbisfile.h>
+#include "alhelpers.h"
 
-/* Define the number of buffers and buffer size (in milliseconds) to use. 4
- * buffers with 8192 samples each gives a nice per-chunk size, and lets the
- * queue last for almost one second at 44.1khz. */
-#define NUM_BUFFERS 4
-#define BUFFER_SAMPLES 8192
-#define VORBIS_REQUEST_SIZE 4096
+#define BGM_NUM_BUFFERS 4
+#define BGM_BUFFER_SAMPLES 8192 //8kb
+#define VORBIS_REQUEST_SIZE 4096 //Max size to request from vorbis to load.
 
 
+/**
+ * @brief The BGM streaming player.  Probably only need one of these at any time
+ *
+ */
 typedef struct StreamPlayer {
-    ALuint buffers[NUM_BUFFERS];
+    /**
+     * @brief Array of buffers to use for referencing the buffer_id in openal
+     */
+    ALuint buffers[BGM_NUM_BUFFERS];
+    /**
+     * @brief The source number for calls.
+     */
     ALuint source;
     ogg_int64_t loop_point_begin;
     ogg_int64_t loop_point_end;
@@ -25,9 +31,29 @@ typedef struct StreamPlayer {
 } StreamPlayer;
 
 
-int Initialize();
+/**
+ * @brief Initialize the openAl backend
+ *
+ * @return 
+ */
+int InitializeAl();
+/**
+ * @brief Play a streaming BGM.
+ *
+ * @param filename The file to stream from
+ * @param loop_begin The point the loop should begin when looping, 0 means beginning.
+ * @param loop_end The point the loop should end and move to the loop)begin.  0 means end of file.
+ *
+ * @return 1 on Success, 0 on failure.
+ */
 int PlayBgm(char* filename, double loop_begin, double loop_end);
-void Update();
-
-int close();
-void update();
+/**
+ * @brief Updates the openal sound system.
+ */
+void UpdateAl();
+/**
+ * @brief Closes the AL sound system.
+ *
+ * @return 1 on Success, 0 on failure.
+ */
+int CloseAl();

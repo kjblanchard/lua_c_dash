@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <AL/al.h>
 #include <ogg/os_types.h>
 #include <vorbis/vorbisfile.h>
 #include "openal.h"
@@ -11,13 +10,15 @@
 static StreamPlayer* bgm_player;
 
 static StreamPlayer *NewPlayer(void);
+static int PreBakeBgm(char* filename, double loop_begin, double loop_end);
 static void DeletePlayer(StreamPlayer *player);
 static int OpenPlayerFile(StreamPlayer *player, const char *filename, double loop_begin, double loop_end);
+static void GetLoopPoints(StreamPlayer*player, double* begin, double*end);
 static void ClosePlayerFile(StreamPlayer *player);
 static int StartPlayer(StreamPlayer *player);
 static int UpdatePlayer(StreamPlayer *player);
 
-int Initialize()
+int InitializeAl()
 {
     StreamPlayer *player;
     if (InitAL() != 0)
@@ -25,6 +26,19 @@ int Initialize()
     bgm_player = NewPlayer();
     return 1;
 }
+
+int PlayBgm(char* filename, double loop_begin, double loop_end)
+{
+    PreBakeBgm(filename,loop_begin,loop_end);
+    if (!StartPlayer(bgm_player))
+    {
+        ClosePlayerFile(bgm_player);
+        return 0;
+    }
+    return 1;
+
+}
+
 static int PreBakeBgm(char* filename, double loop_begin, double loop_end)
 {
     const char *namepart;
@@ -38,25 +52,84 @@ static int PreBakeBgm(char* filename, double loop_begin, double loop_end)
     else
         namepart = filename;
 
+    //TODO convert this to debug
     printf("Playing: %s (%s, %ldhz)\n", namepart, FormatName(bgm_player->format),
             bgm_player->vbinfo->rate);
     fflush(stdout);
     return 1;
 
 }
-int PlayBgm(char* filename, double loop_begin, double loop_end)
+
+/**
+ * @brief Opens a new file and sets up the loop points on the player.  Closes the current file.
+ *
+ * @param player The bgm_player that this should be performed on
+ * @param filename The filename that should be read
+ * @param loop_begin The point that we should start looping
+ * @param loop_end The point we should end looping
+ *
+ * @return 
+ */
+static int OpenPlayerFile(StreamPlayer *player, const char *filename, double loop_begin, double loop_end)
 {
-    PreBakeBgm(filename,loop_begin,loop_end);
-    if (!StartPlayer(bgm_player))
+    ClosePlayerFile(player);
+    int result = ov_fopen(filename, &player->vbfile);
+    if (result !=0)
     {
-        ClosePlayerFile(bgm_player);
+        fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
         return 0;
     }
-    return 1;
+    player->vbinfo = ov_info(&player->vbfile, -1);
+    if (player->vbinfo->channels == 1)
+    {
+        player->format = AL_FORMAT_MONO16;
+    }
+    else
+    {
+        player->format = AL_FORMAT_STEREO16;
+    }
+    if (!player->format)
+    {
+        fprintf(stderr, "Unsupported channel count: %d\n", player->vbinfo->channels);
+        ov_clear(&player->vbfile);
+        return 0;
+    }
+    //TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
+    size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
+    player->membuf = malloc(data_read_size);
 
+    GetLoopPoints(bgm_player, &loop_begin, &loop_end);
+    return 1;
 }
-void Update()
+
+static void GetLoopPoints(StreamPlayer*player, double* loop_begin, double* loop_end)
 {
+    unsigned char not_at_beginning = 0;
+    if(loop_begin)
+    {
+        ov_time_seek(&player->vbfile, *loop_begin);
+        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
+        not_at_beginning = 1;
+    }
+    else
+        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
+    //Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
+    //Due to us checking this on every step.
+    if(loop_end)
+    {
+        ov_time_seek(&player->vbfile, *loop_end);
+        player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
+        not_at_beginning = 1;
+    }
+    else
+        player->loop_point_end = ov_pcm_total(&player->vbfile,-1) * player->vbinfo->channels * sizeof(short);
+    if(not_at_beginning)
+        ov_raw_seek(&player->vbfile, 0);
+}
+
+void UpdateAl()
+{
+    UpdatePlayer(bgm_player);
 
 }
 
@@ -73,7 +146,7 @@ static StreamPlayer *NewPlayer(void)
 
 
     /* Generate the buffers and source */
-    alGenBuffers(NUM_BUFFERS, player->buffers);
+    alGenBuffers(BGM_NUM_BUFFERS, player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
 
     alGenSources(1, &player->source);
@@ -102,7 +175,7 @@ static void DeletePlayer(StreamPlayer *player)
     ClosePlayerFile(player);
 
     alDeleteSources(1, &player->source);
-    alDeleteBuffers(NUM_BUFFERS, player->buffers);
+    alDeleteBuffers(BGM_NUM_BUFFERS, player->buffers);
     if (alGetError() != AL_NO_ERROR)
         fprintf(stderr, "Failed to delete object IDs\n");
 
@@ -110,56 +183,12 @@ static void DeletePlayer(StreamPlayer *player)
     free(player);
 }
 
-/* Opens the first audio stream of the named file. If a file is already open,
- * it will be closed first. */
-static int OpenPlayerFile(StreamPlayer *player, const char *filename, double loop_begin, double loop_end)
-{
-    size_t data_read_size;
 
-    ClosePlayerFile(player);
-
-    int result = ov_fopen(filename, &player->vbfile);
-    if (result !=0)
-    {
-        fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
-        return 0;
-    }
-    player->vbinfo = ov_info(&player->vbfile, -1);
-
-    /* Get the sound format, and figure out the OpenAL format */
-    if (player->vbinfo->channels == 1)
-        player->format = AL_FORMAT_MONO16;
-    else if (player->vbinfo->channels == 2)
-        player->format = AL_FORMAT_STEREO16;
-    if (!player->format)
-    {
-        fprintf(stderr, "Unsupported channel count: %d\n", player->vbinfo->channels);
-        ov_clear(&player->vbfile);
-        //player->sndfile = NULL;
-        return 0;
-    }
-    // data_read_size is the size of data to read, allocate said data space
-    // this is calculated by (samples * channels * 2 (aka 16bits))
-    //data_read_size = (size_t)(BUFFER_SAMPLES * player->vbinfo->channels) * sizeof(short);
-    data_read_size = (size_t)(BUFFER_SAMPLES);
-    printf("Data reading size is %ld bytes \n",data_read_size);
-    player->membuf = malloc(data_read_size);
-
-
-    //Get the positions to loop at.
-    ov_time_seek(&player->vbfile, 28.220);
-    player->loop_point_begin = ov_pcm_tell(&player->vbfile);
-    //The pcm total that we need is the end of the file, multiplied by the number of channels multiplied by the size of a word.
-    ov_time_seek_lap(&player->vbfile, 51.255);
-    player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
-    ov_raw_seek(&player->vbfile, 0);
-
-
-    //Figure out the end loop point. For now, we will use the end of the song.
-    return 1;
-}
-
-/* Closes the audio file stream */
+/**
+ * @brief Deallocates the current memory buffer, so that it can be used for another song.
+ *
+ * @param player The bgm stream to clear.
+ */
 static void ClosePlayerFile(StreamPlayer *player)
 {
     free(player->membuf);
@@ -176,12 +205,16 @@ static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
     int request_size = VORBIS_REQUEST_SIZE;
     //Our goal is to read enough bytes to fill up our buffer samples (8kbs), so while we have read less than that, keep loading.
     //This is due to vorbis reading random amounts, and not the whole size at once.
-    while(total_buffer_bytes_read < BUFFER_SAMPLES)
+    while(total_buffer_bytes_read < BGM_BUFFER_SAMPLES)
     {
         //Update the request size.  Remember our goal is to read the full buffer.
-        request_size = (total_buffer_bytes_read + request_size <= BUFFER_SAMPLES) ? request_size : BUFFER_SAMPLES - total_buffer_bytes_read;
+        request_size = (total_buffer_bytes_read + request_size <= BGM_BUFFER_SAMPLES) 
+            ? request_size 
+            : BGM_BUFFER_SAMPLES - total_buffer_bytes_read;
         //Update the request size.  Remember we don't want to go past the loop end point.
-        request_size = (total_buffer_bytes_read + request_size + player->total_bytes_read_this_loop <= player->loop_point_end) ? request_size : player->loop_point_end - (total_buffer_bytes_read + player->total_bytes_read_this_loop);
+        request_size = (total_buffer_bytes_read + request_size + player->total_bytes_read_this_loop <= player->loop_point_end) 
+            ? request_size 
+            : player->loop_point_end - (total_buffer_bytes_read + player->total_bytes_read_this_loop);
         if(request_size == 0)
         {
             *buff_flags = Buff_Fill_MusicHitLoopPoint;
@@ -207,7 +240,6 @@ static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
     return total_buffer_bytes_read;
 }
 
-/* Prebuffers some audio from the file, and starts playing the source */
 static int StartPlayer(StreamPlayer *player)
 {
     ALsizei i;
@@ -218,7 +250,7 @@ static int StartPlayer(StreamPlayer *player)
 
     /* Fill the buffer queue */
     BufferFillFlags buf_flags;
-    for (i = 0; i < NUM_BUFFERS; i++)
+    for (i = 0; i < BGM_NUM_BUFFERS; i++)
     {
         long bytes_read = LoadBufferData(player, &buf_flags);
         alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)bytes_read,
@@ -314,21 +346,11 @@ static int UpdatePlayer(StreamPlayer *player)
     return 1;
 }
 
-void update()
+int CloseAl()
 {
-    UpdatePlayer(bgm_player);
-}
-
-int close(StreamPlayer *player)
-{
-
-    ClosePlayerFile(player);
-    printf("Done.\n");
-
-    /* All files done. Delete the player, and close down OpenAL */
-    DeletePlayer(player);
-    player = NULL;
-
+    ClosePlayerFile(bgm_player);
+    DeletePlayer(bgm_player);
+    bgm_player = NULL;
     CloseAL();
     return 0;
 }
