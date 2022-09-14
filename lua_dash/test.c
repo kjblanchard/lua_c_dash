@@ -35,7 +35,6 @@ int main()
     double lag = 0.0;
     ProcessInput();
     InitializeSound();
-    //StreamPlayer* player =  play("build/assets/victory2.ogg");
     PlayBgm(0);
     while (world->is_running) 
     {
