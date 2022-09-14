@@ -29,7 +29,14 @@ DEPFLAGS = -MMD -MP -MF $@.d
 -include $(DEP_FILES)
 SCRIPTS = ./lua_dash/*.lua
 # Compile everything as static, except openal due to LGPL.
-LDFLAGS = `sdl2-config --cflags --static-libs --libs` `pkg-config --libs openal` -L/usr/local/lib -llua -lm  `pkg-config --libs --static vorbisfile`
+LDFLAGS = `sdl2-config --cflags --static-libs` \
+		  -L/usr/local/lib \
+		  -llua -lm \
+		  -l openal \
+		  -l vorbisfile \
+		  -l vorbis \
+		  -l ogg
+
 CFLAGS = -std=c99
 
 
