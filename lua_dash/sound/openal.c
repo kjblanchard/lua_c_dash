@@ -5,9 +5,12 @@
 #include <string.h>
 #include <ogg/os_types.h>
 #include <vorbis/vorbisfile.h>
+#include "AL/al.h"
 #include "openal.h"
+#include "vorbis/codec.h"
 
 #define BGM_NUM_BUFFERS 4
+#define MAX_SFX_SOUNDS 10
 #define BGM_BUFFER_SAMPLES 8192 //8kb
 #define VORBIS_REQUEST_SIZE 4096 //Max size to request from vorbis to load.
 /**
@@ -29,6 +32,15 @@ typedef struct StreamPlayer {
     ALenum format;
 } StreamPlayer;
 
+typedef struct SfxPlayer {
+    ALuint buffers[MAX_SFX_SOUNDS];
+    ALuint sources[MAX_SFX_SOUNDS];
+    ALuint free_buffers;
+
+} SfxPlayer;
+
+
+
 /**
  * @brief The different ways that our buffer can fill.
  */
@@ -40,7 +52,9 @@ typedef enum BufferFillFlags
 } BufferFillFlags;
 
 static StreamPlayer* bgm_player;
+static SfxPlayer* sfx_player;
 static StreamPlayer* NewPlayer(void);
+static SfxPlayer* NewSfxPlayer();
 static int PreBakeBgm(StreamPlayer* player, char* filename, double* loop_begin, double* loop_end);
 static int PreBakeBuffers(StreamPlayer* player);
 static void DeletePlayer(StreamPlayer* player);
@@ -52,14 +66,22 @@ static void ClosePlayerFile(StreamPlayer *player);
 static int StartPlayer(StreamPlayer *player);
 static int UpdatePlayer(StreamPlayer *player);
 static int RestartStream(StreamPlayer *player);
+static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
+static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx);
 
 
+/**
+ * @brief Initialize the OpenAl backend, and create the static players.
+ *
+ * @return 
+ */
 int InitializeAl()
 {
     StreamPlayer* player;
     if (InitAL() != 0)
         return 0; // Error
     bgm_player = NewPlayer();
+    sfx_player = NewSfxPlayer();
     return 1;
 }
 
@@ -85,6 +107,61 @@ static StreamPlayer* NewPlayer(void)
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
     assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
     return player;
+}
+
+static SfxPlayer* NewSfxPlayer()
+{
+    SfxPlayer* sfx_player;
+    sfx_player = calloc(1, sizeof(*sfx_player));
+    alGenBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
+    assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
+    alGenSources(MAX_SFX_SOUNDS, sfx_player->sources);
+    assert(alGetError() == AL_NO_ERROR && "Could not create source");
+    for (size_t i = 0; i < 10; ++i) {
+        alSource3i(sfx_player->sources[i], AL_POSITION, 0, 0, -1);
+        alSourcei(sfx_player->sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
+        alSourcei(sfx_player->sources[i], AL_ROLLOFF_FACTOR, 0);
+        assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
+    }
+    sfx_player->free_buffers = MAX_SFX_SOUNDS;
+    return sfx_player;
+
+}
+
+int PlaySfxAl(Sg_Loaded_Sfx* sound_file)
+{
+    PlaySfxFile(sfx_player,sound_file);
+    return 1;
+
+}
+static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file)
+{
+    if(player->free_buffers == 0)
+        return 0;
+    int buffer_num = --player->free_buffers;
+    alSourceRewind(sfx_player->sources[buffer_num]);
+    alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
+    alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error adding bufferdata\n");
+        return 0;
+    }
+    alSourceQueueBuffers(sfx_player->sources[buffer_num], 1, &sfx_player->buffers[buffer_num]);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error queing buffers\n");
+        return 0;
+    }
+    alSourcePlay(sfx_player->sources[buffer_num]);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error playing \n");
+        return 0;
+    }
+    
+
+    return 1;
 }
 
 int PlayBgmAl(char* filename, double* loop_begin, double* loop_end)
@@ -172,6 +249,62 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 
     GetLoopPoints(bgm_player, loop_begin, loop_end);
     return 1;
+}
+Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename)
+{
+
+    return LoadSfxFile(sfx_player, filename);
+
+}
+
+static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename)
+{
+    //TODO Close a sfx_player
+    //ClosePlayerFile(player);
+    //
+    vorbis_info* vbinfo;
+    OggVorbis_File vbfile;
+    Sg_Loaded_Sfx* loaded_sfx;
+    loaded_sfx = calloc(1, sizeof(*loaded_sfx));
+
+    int result = ov_fopen(filename, &vbfile);
+    if (result !=0)
+    {
+        fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
+        return 0;
+    }
+    vbinfo = ov_info(&vbfile, -1);
+    if (vbinfo->channels == 1)
+    {
+        loaded_sfx->format = AL_FORMAT_MONO16;
+    }
+    else
+    {
+        loaded_sfx->format = AL_FORMAT_STEREO16;
+    }
+    if (!loaded_sfx->format)
+    {
+        fprintf(stderr, "Unsupported channel count: %d\n", vbinfo->channels);
+        ov_clear(&vbfile);
+        return 0;
+    }
+    loaded_sfx->sample_rate = vbinfo->rate;
+
+    //Get the size of the file in pcm.
+     loaded_sfx->size =  ov_pcm_total(&vbfile,-1) * vbinfo->channels * sizeof(short);
+    loaded_sfx->sound_data = malloc(loaded_sfx->size);
+    int total_buffer_bytes_read = 0;
+    int fully_loaded = 0;
+    while(!fully_loaded)
+    {
+        int bytes_read =  ov_read(&vbfile, (char*)loaded_sfx->sound_data + total_buffer_bytes_read, VORBIS_REQUEST_SIZE, 0, sizeof(short), 1, 0);
+        total_buffer_bytes_read += bytes_read;
+        if(bytes_read == 0)
+            fully_loaded = 1;
+    }
+    ov_clear(&vbfile);
+    return loaded_sfx;
+
 }
 
 static void GetLoopPoints(StreamPlayer*player, double* loop_begin, double* loop_end)

@@ -5,6 +5,14 @@
 #include <vorbis/vorbisfile.h>
 #include "alhelpers.h"
 
+typedef struct Sg_Loaded_Sfx{
+    ALsizei size;
+    ALenum format;
+    long sample_rate;
+    short* sound_data;
+
+} Sg_Loaded_Sfx;
+
 /**
  * @brief Initialize the openAl backend
  *
@@ -31,3 +39,6 @@ void UpdateAl();
  * @return 1 on Success, 0 on failure.
  */
 int CloseAl();
+
+Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
+int PlaySfxAl(Sg_Loaded_Sfx* sound_file);

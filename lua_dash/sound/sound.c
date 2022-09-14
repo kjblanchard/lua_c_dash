@@ -12,9 +12,20 @@ typedef struct Sg_Bgm {
 
 } Sg_Bgm;
 
+typedef struct Sg_Sfx {
+    char* sfx_name;
+    Sg_Loaded_Sfx* loaded_sfx;
+} Sg_Sfx;
+
 static Sg_Bgm bgm_music[]= {
     {"build/assets/victory2.ogg", 28.220, 51.255}
 };
+
+static Sg_Sfx sfx_sounds[] =
+{
+    {"build/assets/jump.ogg", NULL}
+};
+
 
 int InitializeSound()
 {
@@ -28,6 +39,17 @@ int PlayBgm(int bgm_number)
 
 }
 
+int PlaySfxOneShot(int sfx_number)
+{
+    if (!sfx_sounds[sfx_number].loaded_sfx)
+    {
+        sfx_sounds[sfx_number].loaded_sfx = LoadSfxFileAl(sfx_sounds[sfx_number].sfx_name);
+    }
+
+    PlaySfxAl(sfx_sounds[sfx_number].loaded_sfx);
+    return 1;
+
+}
 void UpdateSound()
 {
     UpdateAl();
