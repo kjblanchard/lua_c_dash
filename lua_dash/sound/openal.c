@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <inttypes.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,6 +66,7 @@ static int HandleProcessedBuffer(StreamPlayer* player);
 static void ClosePlayerFile(StreamPlayer *player);
 static int StartPlayer(StreamPlayer *player);
 static int UpdatePlayer(StreamPlayer *player);
+static int UpdateSfxPlayer(SfxPlayer *player);
 static int RestartStream(StreamPlayer *player);
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx);
@@ -354,6 +356,7 @@ static int StartPlayer(StreamPlayer *player)
 void UpdateAl()
 {
     UpdatePlayer(bgm_player);
+    UpdateSfxPlayer(sfx_player);
 
 }
 
@@ -394,6 +397,29 @@ static int UpdatePlayer(StreamPlayer *player)
     }
 
     return 1;
+}
+static int UpdateSfxPlayer(SfxPlayer *player)
+{
+    ALint processed_buffers, state;
+    for (size_t i = player->free_buffers; i < MAX_SFX_SOUNDS; ++i) 
+    {
+        alGetSourcei(player->sources[i], AL_SOURCE_STATE, &state);
+        alGetSourcei(player->sources[i], AL_BUFFERS_PROCESSED, &processed_buffers);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            fprintf(stderr, "Error checking source state\n");
+            return 0;
+        }
+        while (processed_buffers > 0)
+        {
+            alSourceUnqueueBuffers(player->sources[i], 1, &player->buffers[i]);
+            ++player->free_buffers;
+            --processed_buffers;
+        }
+    }
+
+    return 1;
+
 }
 
 /**

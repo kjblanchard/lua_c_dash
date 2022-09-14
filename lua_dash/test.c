@@ -35,17 +35,15 @@ int main()
     double lag = 0.0;
     ProcessInput();
     InitializeSound();
-    //PlayBgm(0);
+    PlayBgm(0);
     while (world->is_running) 
     {
-        PlaySfxOneShot(0);
         Uint64 current = SDL_GetTicks64();
         Uint64 elapsed = current - previous;
         previous = current;
         ProcessInput();
-        //UpdateSound();
+        UpdateSound();
         SDL_RenderPresent(world->graphics->game_renderer);
-        SDL_Delay(1000);
     }
     CloseSound();
     SDL_Quit();
