@@ -37,7 +37,7 @@ LDFLAGS = `sdl2-config --cflags --static-libs` \
 		  -l vorbis \
 		  -l ogg
 
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -Wall -Werror -pedantic
 
 
 # The rule for compiling the SRC_FILES into OBJ_FILES $< means first prerequisite
