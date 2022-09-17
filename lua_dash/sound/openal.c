@@ -81,7 +81,6 @@ static void DeleteSfxPlayer(SfxPlayer *player);
  */
 int InitializeAl()
 {
-    StreamPlayer* player;
     if (InitAL() != 0)
         return 0; // Error
     bgm_player = NewPlayer();
@@ -182,7 +181,6 @@ int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end)
 
 static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end)
 {
-    const char* namepart;
     if (!OpenPlayerFile(bgm_player,filename, loop_begin, loop_end))
         return 0;
     alSourceRewind(player->source);
@@ -346,7 +344,6 @@ static void GetLoopPoints(StreamPlayer*player, double* loop_begin, double* loop_
 static int StartPlayer(StreamPlayer *player)
 {
     alSourcePlay(player->source);
-    ALint buffers = 0;
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error starting playback\n");

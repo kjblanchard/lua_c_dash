@@ -1,6 +1,6 @@
 #Meke it so that dir and build will always be performed.
 
-.PHONY: debug rebuild doc
+.PHONY: debug rebuild doc destroy
 BUILD_FOLDER = build
 
 all: build
@@ -55,7 +55,11 @@ build: $(OBJ_FILES)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)
 
-rebuild: $(OBJ_FILES)
+destroy:
+	@rm -rf build
+
+rebuild: destroy full
+full: $(OBJ_FILES)
 	echo Linking $(notdir $@)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)

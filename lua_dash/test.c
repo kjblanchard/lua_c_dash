@@ -1,3 +1,4 @@
+#define NK_INCLUDE_FIXED_TYPES
 #include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
@@ -7,6 +8,7 @@
 #include "core/graphics_device.h"
 #include "core/world.h"
 #include "sound/sound.h"
+#include "external/nuklear.h"
 
 
 static void ProcessInput()
