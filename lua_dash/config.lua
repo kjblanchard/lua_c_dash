@@ -9,18 +9,18 @@ Graphics = {
 Sound = {
     Bgm = {
         {
-            name = "build/assets/victory2.ogg",
+            name = "victory2.ogg",
             loop_start = 28.220,
             loop_end = 51.255
         },
         {
-            name = "build/assets/victory2.ogg",
+            name = "victory2.ogg",
             loop_start = 28.220,
             loop_end = 51.255
         },
     },
 
     Sfx = {
-        name = "build/assets/jump.ogg"
+        name = "jump.ogg"
     }
 }

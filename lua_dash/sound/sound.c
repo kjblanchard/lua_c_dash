@@ -7,6 +7,7 @@
 #include "alhelpers.h"
 #include "openal.h"
 
+
 static int LoadSfxFromLua(lua_State* state);
 static int LoadBgmFromLua(lua_State* state);
 //TODO define this in lua, and create this in C from reading that.
@@ -14,14 +15,14 @@ static int LoadBgmFromLua(lua_State* state);
  * @brief Structure to hold a bgm with it's loop points.
  */
 typedef struct Sg_Bgm {
-    const char* bgm_name;
+    char* bgm_name;
     double loop_begin;
     double loop_end;
 
 } Sg_Bgm;
 
 typedef struct Sg_Sfx {
-    const char* sfx_name;
+    char* sfx_name;
     Sg_Loaded_Sfx* loaded_sfx;
 } Sg_Sfx;
 
@@ -30,11 +31,6 @@ static Sg_Sfx** sfx_sounds;
 
 static void load_sound_config(lua_State* state)
 {
-    //Probably don't need to get this since we are already getting it in graphics.
-    //First we load the file chunk with load file, then we use a protectedcall to actually run it.  We print an error if it doesn't work.
-    //    if(luaL_loadfile(state, "./build/config.lua") || lua_pcall(state, 0, 0, 0))
-    //        printf("Error, cannot run config file");
-
     lua_getglobal(state, "Sound");
     if(!lua_istable(state, -1))
     {
@@ -93,7 +89,13 @@ static int LoadBgmFromLua(lua_State* state)
         }
         Sg_Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
-        bgm->bgm_name = lua_tostring(state, -1);
+        const char* sfx_suffix = lua_tostring(state, -1);
+        const char* sfx_prefix = "build/assets/";
+        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
+        char* full_name = malloc(sizeof(char) * name_length);
+        strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
+        strcat(full_name,sfx_suffix);
+        bgm->bgm_name = full_name;
         lua_getfield(state,-2,"loop_start");
         bgm->loop_begin = lua_tonumber(state, -1);
         lua_getfield(state,-3,"loop_end");
@@ -130,7 +132,13 @@ static int LoadSfxFromLua(lua_State* state)
         }
         Sg_Sfx* sfx = malloc(sizeof(*sfx));
         lua_getfield(state,-1,"name");
-        sfx->sfx_name = lua_tostring(state, -1);
+        const char* sfx_suffix = lua_tostring(state, -1);
+        const char* sfx_prefix = "build/assets/";
+        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
+        char* full_name = malloc(sizeof(char) * name_length);
+        strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
+        strcat(full_name,sfx_suffix);
+        sfx->sfx_name = full_name;
         //sfx_list[i-1] = bgm;
         //Pop off the field value and the table value, and the int value.
         lua_pop(state, 4);
