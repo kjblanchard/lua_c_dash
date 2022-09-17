@@ -1,6 +1,6 @@
 #Meke it so that dir and build will always be performed.
-#Build the following targets by default when you type make
-.PHONY: debug rebuild
+
+.PHONY: debug rebuild doc
 BUILD_FOLDER = build
 
 all: build
@@ -69,6 +69,9 @@ lldb:
 
 debug: CFLAGS += -g
 debug: clean rebuild lldb
+
+doc:
+	cd ./doc/; ./update_doc.sh
 
 optimize: CFLAGS += -O2
 optimize: clean rebuild
