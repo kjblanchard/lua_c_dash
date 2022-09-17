@@ -178,6 +178,6 @@ void UpdateSound()
 
 void CloseSound()
 {
-    CloseAL();
+    CloseAl();
 
 }

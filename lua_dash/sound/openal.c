@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ogg/os_types.h>
 #include <vorbis/vorbisfile.h>
+#include "alhelpers.h"
 #include "AL/al.h"
 #include "openal.h"
 #include "vorbis/codec.h"
@@ -70,6 +71,7 @@ static int UpdateSfxPlayer(SfxPlayer *player);
 static int RestartStream(StreamPlayer *player);
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx);
+static void DeleteSfxPlayer(SfxPlayer *player);
 
 
 /**
@@ -520,8 +522,8 @@ static int RestartStream(StreamPlayer *player)
 
 int CloseAl()
 {
-    ClosePlayerFile(bgm_player);
     DeletePlayer(bgm_player);
+    DeleteSfxPlayer(sfx_player);
     bgm_player = NULL;
     CloseAL();
     return 0;
@@ -554,4 +556,19 @@ static void DeletePlayer(StreamPlayer *player)
 
     memset(player, 0, sizeof(*player));
     free(player);
+}
+/**
+ * @brief Cleans up a BGM player and releases memory
+ *
+ * @param player The bgm player to destroy
+ */
+static void DeleteSfxPlayer(SfxPlayer *sfx_player)
+{
+    alDeleteSources(MAX_SFX_SOUNDS, sfx_player->sources);
+    alDeleteBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
+    if (alGetError() != AL_NO_ERROR)
+        fprintf(stderr, "Failed to delete object IDs\n");
+
+    memset(sfx_player, 0, sizeof(*sfx_player));
+    free(sfx_player);
 }
