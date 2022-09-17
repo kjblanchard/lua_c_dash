@@ -28,7 +28,7 @@ int InitializeAl();
  *
  * @return 1 on Success, 0 on failure.
  */
-int PlayBgmAl(char* filename, double* loop_begin, double* loop_end);
+int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end);
 /**
  * @brief Updates the openal sound system.
  */

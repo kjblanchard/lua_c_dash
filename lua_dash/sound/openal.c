@@ -56,7 +56,7 @@ static StreamPlayer* bgm_player;
 static SfxPlayer* sfx_player;
 static StreamPlayer* NewPlayer(void);
 static SfxPlayer* NewSfxPlayer();
-static int PreBakeBgm(StreamPlayer* player, char* filename, double* loop_begin, double* loop_end);
+static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end);
 static int PreBakeBuffers(StreamPlayer* player);
 static void DeletePlayer(StreamPlayer* player);
 static int OpenPlayerFile(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end);
@@ -166,7 +166,7 @@ static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file)
     return 1;
 }
 
-int PlayBgmAl(char* filename, double* loop_begin, double* loop_end)
+int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end)
 {
     PreBakeBgm(bgm_player,filename,loop_begin,loop_end);
     if (!StartPlayer(bgm_player))
@@ -178,7 +178,7 @@ int PlayBgmAl(char* filename, double* loop_begin, double* loop_end)
 
 }
 
-static int PreBakeBgm(StreamPlayer* player, char* filename, double* loop_begin, double* loop_end)
+static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end)
 {
     const char* namepart;
     if (!OpenPlayerFile(bgm_player,filename, loop_begin, loop_end))
