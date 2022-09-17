@@ -1,2 +1,0 @@
--I/opt/homebrew/include/lua
--I/opt/homebrew/Cellar/libvorbis/1.3.7/include -I/opt/homebrew/Cellar/libogg/1.3.5/include
