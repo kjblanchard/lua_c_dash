@@ -60,9 +60,22 @@ GraphicsDevice* CreateGraphicsDevice()
             0);
     if (!graphics->game_window)
         printf("Error making window, %s",SDL_GetError());
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
     graphics->game_renderer = SDL_CreateRenderer(graphics->game_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!graphics->game_renderer)
         printf("Error making renderer %s",SDL_GetError());
+        /* scale the renderer output for High-DPI displays This should be a integer and not a float. */
+    {
+        int render_w, render_h;
+        int window_w, window_h;
+        float scale_x, scale_y;
+        SDL_GetRendererOutputSize(graphics->game_renderer, &render_w, &render_h);
+        SDL_GetWindowSize(graphics->game_window, &window_w, &window_h);
+        scale_x = (float)(render_w) / (float)(window_w);
+        scale_y = (float)(render_h) / (float)(window_h);
+        SDL_RenderSetScale(graphics->game_renderer, scale_x, scale_y);
+        graphics->font_scale = scale_y;
+    }
     return graphics;
 }
 

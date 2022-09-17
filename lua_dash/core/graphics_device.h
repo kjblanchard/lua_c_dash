@@ -18,6 +18,8 @@ typedef struct GraphicsDevice
 {
     Point world_size;
     Point window_size;
+    //Nuklear thing.
+    float font_scale;
     struct SDL_Window* game_window;
     struct SDL_Renderer* game_renderer;
 
