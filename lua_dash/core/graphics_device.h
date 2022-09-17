@@ -1,5 +1,5 @@
 /**
- * @file GraphicsDevice.h
+ * @file graphics_device.h
  * @brief Handles Holding the wondows and renderers.
  * @author Kevin Blanchard
  * @version 0.1
