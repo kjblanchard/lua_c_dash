@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <lauxlib.h>
 #include "world.h"
-#include "GraphicsDevice.h"
+#include "graphics_device.h"
 
 World* CreateWorld()
 {

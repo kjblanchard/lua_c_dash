@@ -3,8 +3,8 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
-#include "base/Point.h"
-#include "core/GraphicsDevice.h"
+#include "base/point.h"
+#include "core/graphics_device.h"
 #include "core/world.h"
 #include "sound/sound.h"
 
@@ -31,16 +31,16 @@ static void ProcessInput()
 int main()
 {
     World* world = CreateWorld();
-    Uint64 previous = SDL_GetTicks64();
-    double lag = 0.0;
+    //Uint64 previous = SDL_GetTicks64();
+    //double lag = 0.0;
     ProcessInput();
     InitializeSound();
     PlayBgm(0);
     while (world->is_running) 
     {
-        Uint64 current = SDL_GetTicks64();
-        Uint64 elapsed = current - previous;
-        previous = current;
+        //Uint64 current = SDL_GetTicks64();
+        //Uint64 elapsed = current - previous;
+        //previous = current;
         ProcessInput();
         UpdateSound();
         SDL_RenderPresent(world->graphics->game_renderer);

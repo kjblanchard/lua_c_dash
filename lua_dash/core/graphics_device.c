@@ -3,7 +3,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-#include "GraphicsDevice.h"
+#include "graphics_device.h"
 #include "SDL2/SDL_error.h"
 #include "world.h"
 

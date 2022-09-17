@@ -2,7 +2,9 @@
 
 A engine built in C, that you can create a game with lua scripts.  mainly to learn C, and lua.  The goal is to build a similar to monogamedash that I did in c# and c++
 
-**[Trello Board](https://trello.com/b/Fx6aJSS3/c-dash)**
+- Using minimal IDE, 100% vim and lldb for debugging.
+- Tracking the project in github projects
+
 **[Doxygen Documentation](https://docs.supergoon.com)**
 
 Currently Compiling on  Mac (apple silicon/arm64), eventually I'll compile to others once the project gets big enough.

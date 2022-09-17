@@ -1,3 +1,11 @@
+/**
+ * @file sound.h
+ * @brief High level wrapper over the openal.h commands to easily play BGM and SFX
+ * @author Kevin Blanchard
+ * @version 0.1
+ * @date 2022-09-17
+ */
+
 #pragma once
 /**
  * @brief Load the Sound backend, this must be called before any other functions are available.

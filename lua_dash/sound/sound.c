@@ -18,20 +18,20 @@
 /**
  * @brief Structure to hold a bgm with it's loop points.
  */
-typedef struct Sg_Bgm {
+typedef struct Bgm {
     char* bgm_name;
     double loop_begin;
     double loop_end;
 
-} Sg_Bgm;
+} Bgm;
 
 /**
  * @brief Holds a sfx name and the loaded file if it is loaded.
  */
-typedef struct Sg_Sfx {
+typedef struct Sfx {
     char* sfx_name;
     Sg_Loaded_Sfx* loaded_sfx;
-} Sg_Sfx;
+} Sfx;
 
 /**
  * @brief The number of bgm's that were loaded from the config file
@@ -44,11 +44,11 @@ static unsigned char sfx_length = 0;
 /**
  * @brief An array of Sg_Bgms that was loaded from the config file.
  */
-static Sg_Bgm** bgm_music;
+static Bgm** bgm_music;
 /**
  * @brief An array of Sg_Sfx that was loaded from the config file
  */
-static Sg_Sfx** sfx_sounds;
+static Sfx** sfx_sounds;
 /**
  * @brief Reads the lua state file, and creates sg_bgms from them that can be used to play music in thhe game.
  *
@@ -117,7 +117,7 @@ static int LoadBgmFromLua(lua_State* state)
         exit(2);
     }
     //Initialize a temporary holding place for the bgms since we don't know how many there is.
-    Sg_Bgm* bgm_list[MAX_BGM_FROM_CONFIG];
+    Bgm* bgm_list[MAX_BGM_FROM_CONFIG];
 
     //We need to loop through everything in that table now, lua indexes start at 1.
     int i = 1;
@@ -135,7 +135,7 @@ static int LoadBgmFromLua(lua_State* state)
             lua_pop(state, 1);
             break;
         }
-        Sg_Bgm* bgm = malloc(sizeof(*bgm));
+        Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
         size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
@@ -154,8 +154,8 @@ static int LoadBgmFromLua(lua_State* state)
     }
     //Copy to right sized array, and destroy temporary one.
     bgm_length = i -1;
-    bgm_music = calloc(bgm_length, sizeof(Sg_Bgm*));
-    memcpy(bgm_music,bgm_list,sizeof(Sg_Bgm*) * bgm_length);
+    bgm_music = calloc(bgm_length, sizeof(Bgm*));
+    memcpy(bgm_music,bgm_list,sizeof(Bgm*) * bgm_length);
     //Pop off the bgm table
     lua_pop(state, 1);
     return 1;
@@ -172,7 +172,7 @@ static int LoadSfxFromLua(lua_State* state)
         exit(2);
     }
     const int sfx_size = MAX_SFX_FROM_CONFIG;
-    Sg_Sfx** sfx_list = (Sg_Sfx**)calloc(sfx_size, sizeof(sfx_list));
+    Sfx** sfx_list = (Sfx**)calloc(sfx_size, sizeof(sfx_list));
     int ended = 0;
     int i = 1;
     while(!ended)
@@ -186,7 +186,7 @@ static int LoadSfxFromLua(lua_State* state)
             ended = 1;
             break;
         }
-        Sg_Sfx* sfx = malloc(sizeof(*sfx));
+        Sfx* sfx = malloc(sizeof(*sfx));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
         size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
@@ -198,8 +198,8 @@ static int LoadSfxFromLua(lua_State* state)
         lua_pop(state, 1);
         ++i;
     }
-    sfx_sounds = calloc(i, sizeof(Sg_Sfx*));
-    memcpy(bgm_music,sfx_list,sizeof(Sg_Bgm*) * --i);
+    sfx_sounds = calloc(i, sizeof(Sfx*));
+    memcpy(bgm_music,sfx_list,sizeof(Bgm*) * --i);
     free(sfx_list);
     lua_pop(state,1);
     return 1;
