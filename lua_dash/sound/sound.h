@@ -1,5 +1,4 @@
 #pragma once
-
 /**
  * @brief Load the Sound backend, this must be called before any other functions are available.
  *
@@ -31,15 +30,27 @@ int StopBgm(int stop_at_end);
  */
 int PlaySfxOneShot(int sfx_number);
 /**
- * @brief Loads the sound section from the config file.  This will grab the sound number, name, and loop points and add them to an internal array.
+ * @brief Preloads a sfx sound.  
  *
- * @return 1 if successfully loaded, 0 if failed.
+ * @param sfx_number the sfx number to load.
+ *
+ * @return Returns 1 if it was loaded or already loaded, and 0 if load failed.
  */
-int LoadSoundConfigFile();
+int LoadSfx(int sfx_number);
+/**
+ * @brief Unloads a loaded sound
+ *
+ * @param sfx_number The number sfx that we should unload
+ *
+ * @return 1 if it was unloaded or wasn't loaded already, and 0 if it was not null
+ */
+int UnloadSfx(int sfx_number);
 /**
  * @brief This should be called every frame.  Updates the BGM sound and such.
  */
 void UpdateSound();
-
+/**
+ * @brief Closes openal and destroys all bgm and sfx.
+ */
 void CloseSound();
 
