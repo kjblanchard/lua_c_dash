@@ -7,6 +7,8 @@
 #include "alhelpers.h"
 #include "openal.h"
 
+static int LoadSfxFromLua(lua_State* state);
+static int LoadBgmFromLua(lua_State* state);
 //TODO define this in lua, and create this in C from reading that.
 /**
  * @brief Structure to hold a bgm with it's loop points.
@@ -19,18 +21,19 @@ typedef struct Sg_Bgm {
 } Sg_Bgm;
 
 typedef struct Sg_Sfx {
-    char* sfx_name;
+    const char* sfx_name;
     Sg_Loaded_Sfx* loaded_sfx;
 } Sg_Sfx;
 
 static Sg_Bgm** bgm_music;
+static Sg_Sfx** sfx_sounds;
 
 static void load_sound_config(lua_State* state)
 {
     //Probably don't need to get this since we are already getting it in graphics.
     //First we load the file chunk with load file, then we use a protectedcall to actually run it.  We print an error if it doesn't work.
-//    if(luaL_loadfile(state, "./build/config.lua") || lua_pcall(state, 0, 0, 0))
-//        printf("Error, cannot run config file");
+    //    if(luaL_loadfile(state, "./build/config.lua") || lua_pcall(state, 0, 0, 0))
+    //        printf("Error, cannot run config file");
 
     lua_getglobal(state, "Sound");
     if(!lua_istable(state, -1))
@@ -38,7 +41,6 @@ static void load_sound_config(lua_State* state)
         printf("This isn't a sound table");
         exit(2);
     }
-    LogWarn("Got here first");
     //Push the string bgm to the table.
     lua_pushstring(state, "Bgm");
     //get from the table at location -2 on the stack, the -1 key
@@ -46,14 +48,29 @@ static void load_sound_config(lua_State* state)
     lua_gettable(state, -2);
     if(!lua_istable(state, -1))
     {
-        printf("This isn't a Bgm table");
+        printf("This isn't a proper table for bgm");
         exit(2);
     }
-    LogWarn("Got here");
+    LoadBgmFromLua(state);
+    lua_pop(state, 1);
+    //LoadSfx
+    lua_pushstring(state, "Sfx");
+    lua_gettable(state, -2);
+    if(!lua_istable(state, -1))
+    {
+        printf("This isn't a proper table for sfx");
+        exit(2);
+    }
+    LoadSfxFromLua(state);
+
+}
+
+static int LoadBgmFromLua(lua_State* state)
+{
     //-1 is bgm table at this point.
     //Init with a specific size.
     const int bgm_size = 20;
-    Sg_Bgm** bgm_list = (Sg_Bgm**)calloc(bgm_size, sizeof(**bgm_list));
+    Sg_Bgm** bgm_list = (Sg_Bgm**)calloc(bgm_size, sizeof(bgm_list));
 
     //We need to loop through everything in that table now.
     //Use ended to note when we should stop.
@@ -91,15 +108,43 @@ static void load_sound_config(lua_State* state)
     memcpy(bgm_music,bgm_list,sizeof(Sg_Bgm*) * --i);
     free(bgm_list);
     //Pop off the table,and sound table from the stack.
-    lua_pop(state,2);
+    return 1;
 
 }
-
-
-static Sg_Sfx sfx_sounds[] =
+static int LoadSfxFromLua(lua_State* state)
 {
-    {"build/assets/jump.ogg", NULL}
-};
+    const int sfx_size = 20;
+    Sg_Sfx** sfx_list = (Sg_Sfx**)calloc(sfx_size, sizeof(sfx_list));
+    int ended = 0;
+    int i = 1;
+    while(!ended)
+    {
+        lua_pushinteger(state, i);
+        lua_gettable(state, -2);
+        if(lua_isnil(state, -1))
+        {
+            //Pop off the table.
+            lua_pop(state, 1);
+            ended = 1;
+            break;
+        }
+        Sg_Sfx* sfx = malloc(sizeof(*sfx));
+        lua_getfield(state,-1,"name");
+        sfx->sfx_name = lua_tostring(state, -1);
+        //sfx_list[i-1] = bgm;
+        //Pop off the field value and the table value, and the int value.
+        lua_pop(state, 4);
+        ++i;
+    }
+    //Copy to right sized array, and destroy temporary one.
+    sfx_sounds = calloc(i, sizeof(Sg_Sfx*));
+    memcpy(bgm_music,sfx_list,sizeof(Sg_Bgm*) * --i);
+    free(sfx_list);
+    //Pop off the table,and sound table from the stack.
+    lua_pop(state,2);
+    return 1;
+
+}
 
 
 int InitializeSound()
@@ -117,12 +162,12 @@ int PlayBgm(int bgm_number)
 
 int PlaySfxOneShot(int sfx_number)
 {
-    if (!sfx_sounds[sfx_number].loaded_sfx)
+    if (!sfx_sounds[sfx_number]->loaded_sfx)
     {
-        sfx_sounds[sfx_number].loaded_sfx = LoadSfxFileAl(sfx_sounds[sfx_number].sfx_name);
+        sfx_sounds[sfx_number]->loaded_sfx = LoadSfxFileAl(sfx_sounds[sfx_number]->sfx_name);
     }
 
-    PlaySfxAl(sfx_sounds[sfx_number].loaded_sfx);
+    PlaySfxAl(sfx_sounds[sfx_number]->loaded_sfx);
     return 1;
 
 }
