@@ -7,10 +7,8 @@
 #include "alhelpers.h"
 #include "openal.h"
 
-
-static int LoadSfxFromLua(lua_State* state);
-static int LoadBgmFromLua(lua_State* state);
-//TODO define this in lua, and create this in C from reading that.
+#define MAX_SFX_FROM_CONFIG 20
+#define MAX_BGM_FROM_CONFIG 20
 /**
  * @brief Structure to hold a bgm with it's loop points.
  */
@@ -28,8 +26,20 @@ typedef struct Sg_Sfx {
 
 static Sg_Bgm** bgm_music;
 static Sg_Sfx** sfx_sounds;
+static int LoadSfxFromLua(lua_State* state);
+static int LoadBgmFromLua(lua_State* state);
+static void LoadSoundConfig(lua_State* state);
+//TODO is there way to get rid of this?
+static const char* sfx_prefix = "build/assets/";
 
-static void load_sound_config(lua_State* state)
+
+
+/**
+ * @brief Loads the sound table from the already loaded config file, and then loads the Bgm and sfx from it.
+ *
+ * @param state The lua global state that should be loaded.
+ */
+static void LoadSoundConfig(lua_State* state)
 {
     lua_getglobal(state, "Sound");
     if(!lua_istable(state, -1))
@@ -37,6 +47,14 @@ static void load_sound_config(lua_State* state)
         printf("This isn't a sound table");
         exit(2);
     }
+    LoadBgmFromLua(state);
+    LoadSfxFromLua(state);
+    lua_pop(state, 1);
+
+}
+
+static int LoadBgmFromLua(lua_State* state)
+{
     //Push the string bgm to the table.
     lua_pushstring(state, "Bgm");
     //get from the table at location -2 on the stack, the -1 key
@@ -47,25 +65,9 @@ static void load_sound_config(lua_State* state)
         printf("This isn't a proper table for bgm");
         exit(2);
     }
-    LoadBgmFromLua(state);
-    lua_pop(state, 1);
-    //LoadSfx
-    lua_pushstring(state, "Sfx");
-    lua_gettable(state, -2);
-    if(!lua_istable(state, -1))
-    {
-        printf("This isn't a proper table for sfx");
-        exit(2);
-    }
-    LoadSfxFromLua(state);
-
-}
-
-static int LoadBgmFromLua(lua_State* state)
-{
     //-1 is bgm table at this point.
     //Init with a specific size.
-    const int bgm_size = 20;
+    const int bgm_size = MAX_BGM_FROM_CONFIG;
     Sg_Bgm** bgm_list = (Sg_Bgm**)calloc(bgm_size, sizeof(bgm_list));
 
     //We need to loop through everything in that table now.
@@ -90,7 +92,6 @@ static int LoadBgmFromLua(lua_State* state)
         Sg_Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
-        const char* sfx_prefix = "build/assets/";
         size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
         char* full_name = malloc(sizeof(char) * name_length);
         strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
@@ -109,13 +110,21 @@ static int LoadBgmFromLua(lua_State* state)
     bgm_music = calloc(i, sizeof(Sg_Bgm*));
     memcpy(bgm_music,bgm_list,sizeof(Sg_Bgm*) * --i);
     free(bgm_list);
-    //Pop off the table,and sound table from the stack.
+    //Pop off the bgm table
+    lua_pop(state, 1);
     return 1;
 
 }
 static int LoadSfxFromLua(lua_State* state)
 {
-    const int sfx_size = 20;
+    lua_pushstring(state, "Sfx");
+    lua_gettable(state, -2);
+    if(!lua_istable(state, -1))
+    {
+        printf("This isn't a proper table for sfx");
+        exit(2);
+    }
+    const int sfx_size = MAX_SFX_FROM_CONFIG;
     Sg_Sfx** sfx_list = (Sg_Sfx**)calloc(sfx_size, sizeof(sfx_list));
     int ended = 0;
     int i = 1;
@@ -133,23 +142,18 @@ static int LoadSfxFromLua(lua_State* state)
         Sg_Sfx* sfx = malloc(sizeof(*sfx));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
-        const char* sfx_prefix = "build/assets/";
         size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
         char* full_name = malloc(sizeof(char) * name_length);
         strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
         strcat(full_name,sfx_suffix);
         sfx->sfx_name = full_name;
-        //sfx_list[i-1] = bgm;
-        //Pop off the field value and the table value, and the int value.
-        lua_pop(state, 4);
+        lua_pop(state, 1);
         ++i;
     }
-    //Copy to right sized array, and destroy temporary one.
     sfx_sounds = calloc(i, sizeof(Sg_Sfx*));
     memcpy(bgm_music,sfx_list,sizeof(Sg_Bgm*) * --i);
     free(sfx_list);
-    //Pop off the table,and sound table from the stack.
-    lua_pop(state,2);
+    lua_pop(state,1);
     return 1;
 
 }
@@ -157,7 +161,7 @@ static int LoadSfxFromLua(lua_State* state)
 
 int InitializeSound()
 {
-    load_sound_config(GameWorld->global_lua_state_ptr);
+    LoadSoundConfig(GameWorld->global_lua_state_ptr);
     return InitializeAl();
 }
 

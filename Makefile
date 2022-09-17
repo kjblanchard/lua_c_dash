@@ -70,6 +70,9 @@ lldb:
 debug: CFLAGS += -g
 debug: clean rebuild lldb
 
+optimize: CFLAGS += -O2
+optimize: clean rebuild
+
 clean:
 	@ - rm -rf build
 
