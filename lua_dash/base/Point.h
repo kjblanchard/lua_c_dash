@@ -1,3 +1,7 @@
+/**
+ * @file Point.h
+ * @brief This file holds the point struct as well as the functions petaining to it.
+ */
 #ifndef POINT_H
 #define POINT_H
 

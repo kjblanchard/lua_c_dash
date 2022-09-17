@@ -3,3 +3,5 @@ build/
 *.swp
 *.dSYM
 *.swo
+update_doc.sh
+doc/
