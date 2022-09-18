@@ -3,11 +3,11 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include "SDL2/SDL_video.h"
 #include "graphics_device.h"
 #include "SDL2/SDL_error.h"
 #include "world.h"
 
-static short int graphics_loaded = 0;
 /**
  * @brief Read the config.lua file and get the values of the world and window height, and set them accordingly
  *
@@ -46,9 +46,6 @@ static void load_graphics_config(lua_State* state, GraphicsDevice* graphics)
 
 GraphicsDevice* CreateGraphicsDevice()
 {
-    if(graphics_loaded)
-        return NULL;
-    ++graphics_loaded;
     GraphicsDevice* graphics = (GraphicsDevice*) malloc(sizeof(GraphicsDevice));
     load_graphics_config(GameWorld->global_lua_state_ptr, graphics);
     graphics->game_window = SDL_CreateWindow(
@@ -64,18 +61,37 @@ GraphicsDevice* CreateGraphicsDevice()
     graphics->game_renderer = SDL_CreateRenderer(graphics->game_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!graphics->game_renderer)
         printf("Error making renderer %s",SDL_GetError());
-        /* scale the renderer output for High-DPI displays This should be a integer and not a float. */
-    {
-        int render_w, render_h;
-        int window_w, window_h;
-        float scale_x, scale_y;
-        SDL_GetRendererOutputSize(graphics->game_renderer, &render_w, &render_h);
-        SDL_GetWindowSize(graphics->game_window, &window_w, &window_h);
-        scale_x = (float)(render_w) / (float)(window_w);
-        scale_y = (float)(render_h) / (float)(window_h);
-        SDL_RenderSetScale(graphics->game_renderer, scale_x, scale_y);
-        graphics->font_scale = scale_y;
-    }
+    graphics->font_scale = 0.f;
+    graphics->window_id = SDL_GetWindowDisplayIndex(graphics->game_window);
+    return graphics;
+}
+
+GraphicsDevice* CreateDebugGraphicsDevice()
+{
+    GraphicsDevice* graphics = (GraphicsDevice*) malloc(sizeof(GraphicsDevice));
+    graphics->game_window = SDL_CreateWindow(
+            "Debug_Window",
+            100,
+            100,
+            640,
+            480,
+            0);
+    if (!graphics->game_window)
+        printf("Error making window, %s",SDL_GetError());
+    graphics->game_renderer = SDL_CreateRenderer(graphics->game_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!graphics->game_renderer)
+        printf("Error making renderer %s",SDL_GetError());
+    /* scale the renderer output for High-DPI displays This should be a integer and not a float. */
+    int render_w, render_h;
+    int window_w, window_h;
+    float scale_x, scale_y;
+    SDL_GetRendererOutputSize(graphics->game_renderer, &render_w, &render_h);
+    SDL_GetWindowSize(graphics->game_window, &window_w, &window_h);
+    scale_x = (float)(render_w) / (float)(window_w);
+    scale_y = (float)(render_h) / (float)(window_h);
+    SDL_RenderSetScale(graphics->game_renderer, scale_x, scale_y);
+    graphics->font_scale = scale_y;
+    graphics->window_id = SDL_GetWindowDisplayIndex(graphics->game_window);
     return graphics;
 }
 

@@ -22,6 +22,7 @@ typedef struct GraphicsDevice
     float font_scale;
     struct SDL_Window* game_window;
     struct SDL_Renderer* game_renderer;
+    int window_id;
 
 } GraphicsDevice;
 
@@ -31,6 +32,12 @@ typedef struct GraphicsDevice
  * @return  Pointer to the created graphics device
  */
 GraphicsDevice* CreateGraphicsDevice();
+/**
+ * @brief Creates the graphics device
+ *
+ * @return  Pointer to the created graphics device
+ */
+GraphicsDevice* CreateDebugGraphicsDevice();
 /**
  * @brief Destroys a graphics device
  *

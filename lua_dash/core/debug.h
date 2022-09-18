@@ -1,5 +1,17 @@
 #pragma once
 /**
+ * @file debug.h
+ * @brief Holds the debug window/renderer (Nuklear) and also has some simple logging functions that Should be used.
+ * @author Kevin Blanchard
+ * @version 0.1
+ * @date 2022-09-18
+ */
+
+struct GraphicsDevice;
+union SDL_Event;
+
+
+/**
  * @brief The different log levels.  Mostly used internally.
  *
  */
@@ -10,6 +22,15 @@ typedef enum LogLevel
     Sg_Debug_Warn,
     Sg_Debug_Error,
 } LogLevel;
+
+typedef struct DebugWindow
+{
+    struct GraphicsDevice* debug_graphics_device;
+    struct nk_context *ctx;
+
+} DebugWindow;
+
+DebugWindow* debug_window;
 /**
  * @brief The internal logging function that the others will end up calling.  Probably don't call it manually
  *
@@ -31,3 +52,19 @@ void LogWarn(const char *format, ...);
  * @param ... The variables for the printf
  */
 void LogError(const char *format, ...);
+
+/**
+ * @brief Initializes the Debug window and renderer to be used
+ *
+ * @return 
+ */
+int InitDebugWindow();
+
+
+void ProcessDebugWindowInputBegin();
+void ProcessDebugWindowInput(union SDL_Event* event);
+void ProcessDebugWindowInputEnd();
+
+
+void ProcessDebugWindowGraphics();
+void ShutdownDebugWindow();
