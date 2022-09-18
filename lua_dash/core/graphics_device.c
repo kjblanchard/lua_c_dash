@@ -62,7 +62,7 @@ GraphicsDevice* CreateGraphicsDevice()
     if (!graphics->game_renderer)
         printf("Error making renderer %s",SDL_GetError());
     graphics->font_scale = 0.f;
-    graphics->window_id = SDL_GetWindowDisplayIndex(graphics->game_window);
+    graphics->window_id = SDL_GetWindowID(graphics->game_window);
     return graphics;
 }
 
@@ -71,8 +71,8 @@ GraphicsDevice* CreateDebugGraphicsDevice()
     GraphicsDevice* graphics = (GraphicsDevice*) malloc(sizeof(GraphicsDevice));
     graphics->game_window = SDL_CreateWindow(
             "Debug_Window",
-            100,
-            100,
+            GameWorld->graphics->window_size.x,
+            0,
             640,
             480,
             0);
@@ -91,7 +91,7 @@ GraphicsDevice* CreateDebugGraphicsDevice()
     scale_y = (float)(render_h) / (float)(window_h);
     SDL_RenderSetScale(graphics->game_renderer, scale_x, scale_y);
     graphics->font_scale = scale_y;
-    graphics->window_id = SDL_GetWindowDisplayIndex(graphics->game_window);
+    graphics->window_id = SDL_GetWindowID(graphics->game_window);
     return graphics;
 }
 

@@ -43,11 +43,13 @@ static void ProcessInput()
 int main()
 {
     World* world = CreateWorld();
+    assert(world);
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
-    InitializeSound();
     int result = InitDebugWindow();
     assert(result);
+    SDL_RaiseWindow(GameWorld->graphics->game_window);
+    InitializeSound();
     PlayBgm(0);
     while (world->is_running) 
     {
@@ -57,7 +59,6 @@ int main()
         ProcessInput();
         UpdateSound();
         ProcessDebugWindowGraphics();
-        //Draw our stuff.
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
         SDL_RenderClear(world->graphics->game_renderer);
         SDL_RenderPresent(world->graphics->game_renderer);
