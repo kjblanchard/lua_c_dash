@@ -37,7 +37,8 @@ LDFLAGS = `sdl2-config --cflags --static-libs` \
 		  -l vorbis \
 		  -l ogg
 
-CFLAGS = -std=c99 -Wall -Werror -pedantic
+#Debug buid enabled is a macro used in the debug.h that generates and displays a second window, currently using it in dev
+CFLAGS = -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED
 
 
 # The rule for compiling the SRC_FILES into OBJ_FILES $< means first prerequisite

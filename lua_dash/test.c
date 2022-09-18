@@ -33,7 +33,6 @@ static void ProcessInput()
         }
         else if (sdlEvent.type == SDL_QUIT)
             GameWorld->is_running = 0;
-        
     }
     ProcessDebugWindowInputEnd();
 }
