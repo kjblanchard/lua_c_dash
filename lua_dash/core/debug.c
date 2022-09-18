@@ -2,23 +2,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <SDL2/SDL_events.h>
 #include "debug.h"
 #include "graphics_device.h"
-#include <SDL2/SDL_events.h>
+#include "../sound/sound.h"
 
 #ifdef DEBUG_BUILD_ENABLED
 #define NK_INCLUDE_FIXED_TYPES
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
-#include <limits.h>
-#include <time.h>
-#include <limits.h>
-#include <math.h>
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -28,7 +18,7 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
 #define NK_SDL_RENDERER_IMPLEMENTATION
-#define INCLUDE_OVERVIEW
+//#define INCLUDE_OVERVIEW
 #include "../external/nuklear.h"
 #include "../external/nuklear_sdl_renderer.h"
 #ifdef INCLUDE_OVERVIEW
@@ -134,11 +124,13 @@ void ProcessDebugWindowGraphics()
     {
         enum {EASY, HARD};
         static int op = EASY;
-        static int property = 20;
+        static int property = 0;
 
-        nk_layout_row_static(debug_window->ctx, 30, 80, 1);
-        if (nk_button_label(debug_window->ctx, "button"))
-            fprintf(stdout, "button pressed\n");
+        nk_layout_row_static(debug_window->ctx, 30, 80, 2);
+        if (nk_button_label(debug_window->ctx, "PlayBgm"))
+            PlayBgm(property);
+        if (nk_button_label(debug_window->ctx, "PlaySfx"))
+            PlaySfxOneShot(property);
         nk_layout_row_dynamic(debug_window->ctx, 30, 2);
         if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;
@@ -160,7 +152,7 @@ void ProcessDebugWindowGraphics()
         }
     }
     nk_end(debug_window->ctx);
-    overview(debug_window->ctx);
+    //overview(debug_window->ctx);
     SDL_SetRenderDrawColor(debug_window->debug_graphics_device->game_renderer, bg.r * 255, bg.g * 255, bg.b * 255, bg.a * 255);
     SDL_RenderClear(debug_window->debug_graphics_device->game_renderer);
     nk_sdl_render(NK_ANTI_ALIASING_ON);

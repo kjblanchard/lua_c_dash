@@ -171,11 +171,10 @@ static int LoadSfxFromLua(lua_State* state)
         printf("This isn't a proper table for sfx");
         exit(2);
     }
-    const int sfx_size = MAX_SFX_FROM_CONFIG;
-    Sfx** sfx_list = (Sfx**)calloc(sfx_size, sizeof(sfx_list));
-    int ended = 0;
+    Sfx* sfx_list[MAX_SFX_FROM_CONFIG];
+
     int i = 1;
-    while(!ended)
+    while(1)
     {
         lua_pushinteger(state, i);
         lua_gettable(state, -2);
@@ -183,7 +182,6 @@ static int LoadSfxFromLua(lua_State* state)
         {
             //Pop off the table.
             lua_pop(state, 1);
-            ended = 1;
             break;
         }
         Sfx* sfx = malloc(sizeof(*sfx));
@@ -195,12 +193,13 @@ static int LoadSfxFromLua(lua_State* state)
         strcat(full_name,sfx_suffix);
         sfx->sfx_name = full_name;
         sfx->loaded_sfx = NULL;
+        sfx_list[i-1] = sfx;
         lua_pop(state, 1);
         ++i;
     }
-    sfx_sounds = calloc(i, sizeof(Sfx*));
-    memcpy(bgm_music,sfx_list,sizeof(Bgm*) * --i);
-    free(sfx_list);
+    sfx_length = i -1;
+    sfx_sounds = calloc(sfx_length, sizeof(Sfx*));
+    memcpy(sfx_sounds,sfx_list,sizeof(Sfx*) * sfx_length);
     lua_pop(state,1);
     return 1;
 
