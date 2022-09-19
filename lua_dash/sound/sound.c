@@ -208,7 +208,7 @@ static int LoadSfxFromLua(lua_State* state)
 int PlayBgm(int bgm_number)
 {
 
-    if(bgm_number > bgm_length)
+    if(bgm_number >= bgm_length)
     {
         LogWarn("The bgm number you tried to play doesn't exist.");
         return 0;
@@ -223,7 +223,7 @@ int StopBgm(int stop_at_end)
 
 int PlaySfxOneShot(int sfx_number)
 {
-    if(sfx_number > sfx_length)
+    if(sfx_number >= sfx_length)
     {
         LogWarn("The sfx number you tried to play doesn't exist.");
         return 0;

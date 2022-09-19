@@ -4,6 +4,8 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
+#include "SDL2/SDL_events.h"
+#include "SDL2/SDL_keycode.h"
 #include "SDL2/SDL_video.h"
 #include "base/point.h"
 #include "core/graphics_device.h"
@@ -11,6 +13,7 @@
 #include "core/world.h"
 #include "sound/sound.h"
 
+static unsigned int debug_window_enabled = 0;
 
 static void ProcessInput()
 {
@@ -18,17 +21,27 @@ static void ProcessInput()
     ProcessDebugWindowInputBegin();
     while (SDL_PollEvent(&sdlEvent) != 0)
     {
-        if(sdlEvent.window.windowID != GameWorld->graphics->window_id)
+        if(debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
         {
-            ProcessDebugWindowInput(&sdlEvent);
+            if(sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_BACKQUOTE)
+            {
+                debug_window_enabled = (debug_window_enabled) ? 0 : 1;
+                ToggleDebugWindow(debug_window_enabled);
+            }
+            else
+                ProcessDebugWindowInput(&sdlEvent);
             continue;
         }
-        //Handle this windows events
         if (sdlEvent.type == SDL_KEYDOWN)
         {
             if (sdlEvent.key.keysym.sym == SDLK_ESCAPE)
             {
                 GameWorld->is_running = 0;
+            }
+            else if (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE)
+            {
+                debug_window_enabled = (debug_window_enabled) ? 0 : 1;
+                ToggleDebugWindow(debug_window_enabled);
             }
         }
         else if (sdlEvent.type == SDL_QUIT)
@@ -48,6 +61,7 @@ int main()
     int result = InitDebugWindow();
     assert(result);
     SDL_RaiseWindow(GameWorld->graphics->game_window);
+    ToggleDebugWindow(0);
     InitializeSound();
     PlayBgm(0);
     while (world->is_running) 
@@ -57,7 +71,8 @@ int main()
         //previous = current;
         ProcessInput();
         UpdateSound();
-        ProcessDebugWindowGraphics();
+        if(debug_window_enabled)
+            ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
         SDL_RenderClear(world->graphics->game_renderer);
         SDL_RenderPresent(world->graphics->game_renderer);

@@ -59,12 +59,9 @@ void LogError(const char *format, ...);
  * @return 
  */
 int InitDebugWindow();
-
-
+void ToggleDebugWindow(int enabled);
 void ProcessDebugWindowInputBegin();
 void ProcessDebugWindowInput(union SDL_Event* event);
 void ProcessDebugWindowInputEnd();
-
-
 void ProcessDebugWindowGraphics();
 void ShutdownDebugWindow();

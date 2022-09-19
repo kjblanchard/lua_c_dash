@@ -536,6 +536,7 @@ int CloseAl()
 static void ClosePlayerFile(StreamPlayer *player)
 {
     ov_clear(&player->vbfile);
+    player->total_bytes_read_this_loop = 0;
     player->file_loaded = 0;
 }
 

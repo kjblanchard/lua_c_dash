@@ -3,11 +3,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <SDL2/SDL_events.h>
+#include "SDL2/SDL_video.h"
 #include "debug.h"
 #include "graphics_device.h"
 #include "../sound/sound.h"
 
-#ifdef DEBUG_BUILD_ENABLED
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
@@ -25,7 +25,6 @@
 #include "../external/nuklear_overview.h"
 #endif
 struct nk_colorf bg;
-#endif
 
 
 void Log(LogLevel level, const char* thing_to_write)
@@ -84,39 +83,27 @@ int InitDebugWindow()
 
 void ProcessDebugWindowInputBegin()
 {
-#ifndef DEBUG_BUILD_ENABLED
-    return;
-#endif
-#ifdef DEBUG_BUILD_ENABLED
     nk_input_begin(debug_window->ctx);
-#endif
 
+}
+void ToggleDebugWindow(int enabled)
+{
+    if(enabled)
+        SDL_ShowWindow(debug_window->debug_graphics_device->game_window);
+    else
+        SDL_HideWindow(debug_window->debug_graphics_device->game_window);
 }
 void ProcessDebugWindowInput(SDL_Event* event)
 {
-#ifndef DEBUG_BUILD_ENABLED
-    return;
-#endif
-#ifdef DEBUG_BUILD_ENABLED
     nk_sdl_handle_event(event);
-#endif
 
 }
 void ProcessDebugWindowInputEnd()
 {
-#ifndef DEBUG_BUILD_ENABLED
-    return;
-#endif
-#ifdef DEBUG_BUILD_ENABLED
     nk_input_end(debug_window->ctx);
-#endif
 }
 void ProcessDebugWindowGraphics()
 {
-#ifndef DEBUG_BUILD_ENABLED
-    return;
-#endif
-#ifdef DEBUG_BUILD_ENABLED
 
     if (nk_begin(debug_window->ctx, "Demo", nk_rect(50, 50, 230, 250),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
@@ -128,14 +115,17 @@ void ProcessDebugWindowGraphics()
 
         nk_layout_row_static(debug_window->ctx, 30, 80, 2);
         if (nk_button_label(debug_window->ctx, "PlayBgm"))
+        {
             PlayBgm(property);
+
+        }
         if (nk_button_label(debug_window->ctx, "PlaySfx"))
             PlaySfxOneShot(property);
         nk_layout_row_dynamic(debug_window->ctx, 30, 2);
         if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;
         nk_layout_row_dynamic(debug_window->ctx, 25, 1);
-        nk_property_int(debug_window->ctx, "Compression:", 0, &property, 100, 1, 1);
+        nk_property_int(debug_window->ctx, "Sound Num:", 0, &property, 100, 1, 1);
 
         nk_layout_row_dynamic(debug_window->ctx, 20, 1);
         nk_label(debug_window->ctx, "background:", NK_TEXT_LEFT);
@@ -152,20 +142,13 @@ void ProcessDebugWindowGraphics()
         }
     }
     nk_end(debug_window->ctx);
-    //overview(debug_window->ctx);
     SDL_SetRenderDrawColor(debug_window->debug_graphics_device->game_renderer, bg.r * 255, bg.g * 255, bg.b * 255, bg.a * 255);
     SDL_RenderClear(debug_window->debug_graphics_device->game_renderer);
     nk_sdl_render(NK_ANTI_ALIASING_ON);
     SDL_RenderPresent(debug_window->debug_graphics_device->game_renderer);
-#endif
 
 }
 void ShutdownDebugWindow()
 {
-#ifndef DEBUG_BUILD_ENABLED
-    return;
-#endif
-#ifdef DEBUG_BUILD_ENABLED
     nk_sdl_shutdown();
-#endif
 }
