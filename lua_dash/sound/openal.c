@@ -32,6 +32,7 @@ typedef struct StreamPlayer {
     vorbis_info* vbinfo;
     short *membuf;
     ALenum format;
+    unsigned short file_loaded;
 } StreamPlayer;
 
 typedef struct SfxPlayer {
@@ -109,6 +110,9 @@ static StreamPlayer* NewPlayer(void)
     alSourcei(player->source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
     assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
+    //TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
+    size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
+    player->membuf = malloc(data_read_size);
     return player;
 }
 
@@ -223,13 +227,15 @@ int PreBakeBuffers(StreamPlayer* player)
  */
 static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end)
 {
-    ClosePlayerFile(player);
+    if(player->file_loaded)
+        ClosePlayerFile(player);
     int result = ov_fopen(filename, &player->vbfile);
     if (result !=0)
     {
         fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
         return 0;
     }
+    player->file_loaded = 1;
     player->vbinfo = ov_info(&player->vbfile, -1);
     if (player->vbinfo->channels == 1)
     {
@@ -245,10 +251,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
         ov_clear(&player->vbfile);
         return 0;
     }
-    //TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
-    size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
-    player->membuf = malloc(data_read_size);
-
     GetLoopPoints(bgm_player, loop_begin, loop_end);
     return 1;
 }
@@ -533,8 +535,8 @@ int CloseAl()
  */
 static void ClosePlayerFile(StreamPlayer *player)
 {
-    free(player->membuf);
-    player->membuf = NULL;
+    ov_clear(&player->vbfile);
+    player->file_loaded = 0;
 }
 
 /**
@@ -545,7 +547,8 @@ static void ClosePlayerFile(StreamPlayer *player)
 static void DeletePlayer(StreamPlayer *player)
 {
     ClosePlayerFile(player);
-
+    free(player->membuf);
+    player->membuf = NULL;
     alDeleteSources(1, &player->source);
     alDeleteBuffers(BGM_NUM_BUFFERS, player->buffers);
     if (alGetError() != AL_NO_ERROR)

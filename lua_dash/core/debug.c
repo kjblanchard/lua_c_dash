@@ -135,7 +135,7 @@ void ProcessDebugWindowGraphics()
         if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;
         nk_layout_row_dynamic(debug_window->ctx, 25, 1);
-        nk_property_int(debug_window->ctx, "Compression:", 0, &property, 100, 10, 1);
+        nk_property_int(debug_window->ctx, "Compression:", 0, &property, 100, 1, 1);
 
         nk_layout_row_dynamic(debug_window->ctx, 20, 1);
         nk_label(debug_window->ctx, "background:", NK_TEXT_LEFT);
