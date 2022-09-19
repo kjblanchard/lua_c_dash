@@ -63,7 +63,7 @@ int main()
     SDL_RaiseWindow(GameWorld->graphics->game_window);
     ToggleDebugWindow(0);
     InitializeSound();
-    PlayBgm(0);
+    PlayBgm(0, 0.3f);
     while (world->is_running) 
     {
         //Uint64 current = SDL_GetTicks64();

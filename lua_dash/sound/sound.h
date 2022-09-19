@@ -17,10 +17,11 @@ int InitializeSound();
  * @brief Play a specific BGM.  It will loop continuously until you call the Stop function on it.  Its loop points and number are determined by the config file.
  *
  * @param bgm_number The current bgm number to play.
+ * @param volume The volume we want to set this to.  1 is regular volume.
  *
  * @return 1 if Successful, 0 if failed to start.
  */
-int PlayBgm(int bgm_number);
+int PlayBgm(int bgm_number, float volume);
 /**
  * @brief Stops a playing bgm.  If stop_at_end is true, then it will stop playing at the end of the song.
  *
@@ -36,7 +37,7 @@ int StopBgm(int stop_at_end);
  *
  * @return 1 if successful, 0 if failed to start
  */
-int PlaySfxOneShot(int sfx_number);
+int PlaySfxOneShot(int sfx_number, float volume);
 /**
  * @brief Preloads a sfx sound.  
  *

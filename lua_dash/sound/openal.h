@@ -26,7 +26,7 @@ int InitializeAl();
  *
  * @return 1 on Success, 0 on failure.
  */
-int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end);
+int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float volume);
 /**
  * @brief Updates the openal sound system.
  */
@@ -39,4 +39,4 @@ void UpdateAl();
 int CloseAl();
 
 Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
-int PlaySfxAl(Sg_Loaded_Sfx* sound_file);
+int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume);

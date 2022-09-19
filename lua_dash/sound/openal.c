@@ -58,7 +58,7 @@ static StreamPlayer* bgm_player;
 static SfxPlayer* sfx_player;
 static StreamPlayer* NewPlayer(void);
 static SfxPlayer* NewSfxPlayer();
-static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end);
+static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end, float volume);
 static int PreBakeBuffers(StreamPlayer* player);
 static void DeletePlayer(StreamPlayer* player);
 static int OpenPlayerFile(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end);
@@ -71,7 +71,7 @@ static int UpdatePlayer(StreamPlayer *player);
 static int UpdateSfxPlayer(SfxPlayer *player);
 static int RestartStream(StreamPlayer *player);
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
-static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx);
+static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx, float volume);
 static void DeleteSfxPlayer(SfxPlayer *player);
 
 
@@ -135,19 +135,22 @@ static SfxPlayer* NewSfxPlayer()
 
 }
 
-int PlaySfxAl(Sg_Loaded_Sfx* sound_file)
+int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume)
 {
-    PlaySfxFile(sfx_player,sound_file);
+    PlaySfxFile(sfx_player,sound_file, volume);
     return 1;
 
 }
-static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file)
+static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 {
     if(player->free_buffers == 0)
         return 0;
+    printf("The amount of free buffers is %d", player->free_buffers);
+    fflush(stdout);
     int buffer_num = --player->free_buffers;
     alSourceRewind(sfx_player->sources[buffer_num]);
     alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
+    alSourcef(sfx_player->sources[buffer_num], AL_GAIN, volume);
     alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
     if (alGetError() != AL_NO_ERROR)
     {
@@ -171,9 +174,9 @@ static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file)
     return 1;
 }
 
-int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end)
+int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float volume)
 {
-    PreBakeBgm(bgm_player,filename,loop_begin,loop_end);
+    PreBakeBgm(bgm_player,filename,loop_begin,loop_end, volume);
     if (!StartPlayer(bgm_player))
     {
         ClosePlayerFile(bgm_player);
@@ -183,12 +186,13 @@ int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end)
 
 }
 
-static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end)
+static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end, float volume)
 {
     if (!OpenPlayerFile(bgm_player,filename, loop_begin, loop_end))
         return 0;
     alSourceRewind(player->source);
     alSourcei(player->source, AL_BUFFER, 0);
+    alSourcef(player->source, AL_GAIN, volume);
     PreBakeBuffers(player);
     return 1;
 }
@@ -399,10 +403,16 @@ static int UpdatePlayer(StreamPlayer *player)
 
     return 1;
 }
+static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num)
+{
+            alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
+            ++player->free_buffers;
+
+}
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers, state;
-    for (size_t i = player->free_buffers; i < MAX_SFX_SOUNDS; ++i) 
+    for (size_t i = 0; i < MAX_SFX_SOUNDS; ++i) 
     {
         alGetSourcei(player->sources[i], AL_SOURCE_STATE, &state);
         alGetSourcei(player->sources[i], AL_BUFFERS_PROCESSED, &processed_buffers);
@@ -413,8 +423,7 @@ static int UpdateSfxPlayer(SfxPlayer *player)
         }
         while (processed_buffers > 0)
         {
-            alSourceUnqueueBuffers(player->sources[i], 1, &player->buffers[i]);
-            ++player->free_buffers;
+            UnqueueSfxBuffer(player, i);
             --processed_buffers;
         }
     }
@@ -422,6 +431,8 @@ static int UpdateSfxPlayer(SfxPlayer *player)
     return 1;
 
 }
+
+
 
 /**
  * @brief Unqueue and handle each buffer that needs processing.

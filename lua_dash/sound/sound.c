@@ -205,7 +205,7 @@ static int LoadSfxFromLua(lua_State* state)
 
 }
 
-int PlayBgm(int bgm_number)
+int PlayBgm(int bgm_number, float volume)
 {
 
     if(bgm_number >= bgm_length)
@@ -213,7 +213,7 @@ int PlayBgm(int bgm_number)
         LogWarn("The bgm number you tried to play doesn't exist.");
         return 0;
     }
-    return PlayBgmAl(bgm_music[bgm_number]->bgm_name, &bgm_music[bgm_number]->loop_begin,&bgm_music[bgm_number]->loop_end);
+    return PlayBgmAl(bgm_music[bgm_number]->bgm_name, &bgm_music[bgm_number]->loop_begin,&bgm_music[bgm_number]->loop_end, volume);
 }
 
 int StopBgm(int stop_at_end)
@@ -221,7 +221,7 @@ int StopBgm(int stop_at_end)
     return 1;
 }
 
-int PlaySfxOneShot(int sfx_number)
+int PlaySfxOneShot(int sfx_number, float volume)
 {
     if(sfx_number >= sfx_length)
     {
@@ -232,7 +232,7 @@ int PlaySfxOneShot(int sfx_number)
     {
         sfx_sounds[sfx_number]->loaded_sfx = LoadSfxFileAl(sfx_sounds[sfx_number]->sfx_name);
     }
-    PlaySfxAl(sfx_sounds[sfx_number]->loaded_sfx);
+    PlaySfxAl(sfx_sounds[sfx_number]->loaded_sfx, volume);
     return 1;
 
 }
