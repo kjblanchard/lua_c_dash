@@ -41,7 +41,7 @@ typedef struct SfxPlayer {
     ALuint buffers[MAX_SFX_SOUNDS];
     ALuint sources[MAX_SFX_SOUNDS];
     int_vector* playing_buffers;
-    int_queue* free_buffers;
+    queue* free_buffers;
 
 } SfxPlayer;
 
@@ -123,7 +123,7 @@ static SfxPlayer* NewSfxPlayer()
 {
     SfxPlayer* sfx_player;
     sfx_player = calloc(1, sizeof(*sfx_player));
-    sfx_player->free_buffers = CreateIntQueue(MAX_SFX_SOUNDS);
+    sfx_player->free_buffers = CreateQueue(MAX_SFX_SOUNDS);
     sfx_player->playing_buffers = CreateIntVector();
     alGenBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
@@ -134,7 +134,7 @@ static SfxPlayer* NewSfxPlayer()
         alSourcei(sfx_player->sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
         alSourcei(sfx_player->sources[i], AL_ROLLOFF_FACTOR, 0);
         assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
-        PushIntQueue(sfx_player->free_buffers, i);
+        Enqueue(sfx_player->free_buffers, i);
     }
     return sfx_player;
 
@@ -148,10 +148,13 @@ int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume)
 }
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 {
-    if(player->free_buffers->size == 0)
+    if(QueueIsEmpty(player->free_buffers))
+    {
+        puts("Buffers are empty");
         return 0;
-    printf("The amount of free buffers is %d\n", player->free_buffers->size);
-    int buffer_num = PopIntQueue(player->free_buffers);
+    }
+    printf("The amount of free buffers is %d\n", MAX_SFX_SOUNDS - QueueRemaining(player->free_buffers));
+    int buffer_num = Dequeue(player->free_buffers);
     //int buffer_num = --player->free_buffers;
     alSourceRewind(sfx_player->sources[buffer_num]);
     alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
@@ -410,13 +413,13 @@ static int UpdatePlayer(StreamPlayer *player)
 static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num)
 {
             alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
-            PushIntQueue(player->free_buffers, source_num);
+            Enqueue(player->free_buffers, source_num);
 
 }
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers, state;
-    int previous_free_size = player->free_buffers->size;
+    int previous_free_size = QueueRemaining(player->free_buffers);
     for (size_t i = 0; i < player->playing_buffers->size; ++i) 
     {
         ALuint buf_num = player->playing_buffers->vector[i];
