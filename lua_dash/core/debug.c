@@ -111,22 +111,22 @@ void ProcessDebugWindowGraphics()
     {
         enum {EASY, HARD};
         static int op = EASY;
-        static int property = 0;
+        static int sound_num = 0;
         static float volume = 1;
 
         nk_layout_row_static(debug_window->ctx, 30, 80, 2);
         if (nk_button_label(debug_window->ctx, "PlayBgm"))
         {
-            PlayBgm(property, volume);
+            PlayBgm(sound_num, volume);
 
         }
         if (nk_button_label(debug_window->ctx, "PlaySfx"))
-            PlaySfxOneShot(property, volume);
+            PlaySfxOneShot(sound_num, volume);
         nk_layout_row_dynamic(debug_window->ctx, 30, 2);
         if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;
         nk_layout_row_dynamic(debug_window->ctx, 25, 1);
-        nk_property_int(debug_window->ctx, "Sound Num:", 0, &property, 100, 1, 1);
+        nk_property_int(debug_window->ctx, "Sound Num:", 0, &sound_num, 100, 1, 1);
         nk_property_float(debug_window->ctx, "Sound Vol", 0, &volume, 1, 0.1, 0);
         nk_slider_float(debug_window->ctx, 0, &volume, 1, 0.01);
 

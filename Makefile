@@ -9,6 +9,7 @@ CC = clang
 BINARY_NAME = $(BUILD_FOLDER)/game
 SRC_FOLDERS = ./lua_dash/core \
 			  ./lua_dash/sound \
+			  ./lua_dash/base \
 			  ./lua_dash
 # the := means that it is only assigned once, and then read after.
 #SRC_FILES := $(shell find $(SRC_FOLDERS) -name 'hello.c')
