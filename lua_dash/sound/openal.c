@@ -40,7 +40,7 @@ typedef struct StreamPlayer {
 typedef struct SfxPlayer {
     ALuint buffers[MAX_SFX_SOUNDS];
     ALuint sources[MAX_SFX_SOUNDS];
-    int_vector* playing_buffers;
+    vector* playing_buffers;
     queue* free_buffers;
 
 } SfxPlayer;
@@ -124,7 +124,7 @@ static SfxPlayer* NewSfxPlayer()
     SfxPlayer* sfx_player;
     sfx_player = calloc(1, sizeof(*sfx_player));
     sfx_player->free_buffers = CreateQueue(MAX_SFX_SOUNDS);
-    sfx_player->playing_buffers = CreateIntVector();
+    sfx_player->playing_buffers = CreateVector();
     alGenBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
     alGenSources(MAX_SFX_SOUNDS, sfx_player->sources);
@@ -177,7 +177,7 @@ static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
         fprintf(stderr, "Error playing \n");
         return 0;
     }
-    AppendVectorInt(player->playing_buffers, buffer_num);
+    VectorPushBack(player->playing_buffers, buffer_num);
     return 1;
 }
 
@@ -422,7 +422,7 @@ static int UpdateSfxPlayer(SfxPlayer *player)
     int previous_free_size = QueueRemaining(player->free_buffers);
     for (size_t i = 0; i < player->playing_buffers->size; ++i) 
     {
-        ALuint buf_num = player->playing_buffers->vector[i];
+        ALuint buf_num = player->playing_buffers->data[i];
         alGetSourcei(player->sources[buf_num], AL_SOURCE_STATE, &state);
         alGetSourcei(player->sources[buf_num], AL_BUFFERS_PROCESSED, &processed_buffers);
         if (alGetError() != AL_NO_ERROR)
@@ -440,7 +440,7 @@ static int UpdateSfxPlayer(SfxPlayer *player)
     {
         for (size_t i = previous_free_size; i < player->playing_buffers->size; ++i)
         {
-            RemoveVectorInt(player->playing_buffers, player->playing_buffers->vector[i]);
+            VectorRemoveItem(player->playing_buffers, player->playing_buffers->data[i]);
         }
     }
 
