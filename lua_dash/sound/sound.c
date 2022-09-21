@@ -154,8 +154,12 @@ static int LoadBgmFromLua(lua_State* state)
     }
     //Copy to right sized array, and destroy temporary one.
     bgm_length = i -1;
-    bgm_music = calloc(bgm_length, sizeof(Bgm*));
-    memcpy(bgm_music,bgm_list,sizeof(Bgm*) * bgm_length);
+    bgm_music = calloc(bgm_length, sizeof(bgm_music));
+    for (size_t i = 0; i < bgm_length; ++i) 
+    {
+        bgm_music[i] = bgm_list[i];
+    }
+    //memcpy(bgm_music,bgm_list,sizeof(Bgm*) * bgm_length);
     //Pop off the bgm table
     lua_pop(state, 1);
     return 1;
@@ -199,7 +203,11 @@ static int LoadSfxFromLua(lua_State* state)
     }
     sfx_length = i -1;
     sfx_sounds = calloc(sfx_length, sizeof(Sfx*));
-    memcpy(sfx_sounds,sfx_list,sizeof(Sfx*) * sfx_length);
+    for (size_t i = 0; i < sfx_length; ++i) 
+    {
+        sfx_sounds[i] = sfx_list[i];
+    }
+    //memcpy(sfx_sounds,sfx_list,sizeof(Sfx*) * sfx_length);
     lua_pop(state,1);
     return 1;
 

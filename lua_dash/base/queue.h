@@ -17,7 +17,7 @@ typedef struct queue
  *
  * @return A newly created queue.
  */
-queue* CreateQueue(int max);
+queue* CreateQueue(int capacity);
 /**
  * @brief Destroys a queue and releases it's data.
  *

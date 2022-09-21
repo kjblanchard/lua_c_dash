@@ -10,11 +10,11 @@
  */
 static void MoveDataToFrontOfQueue(queue* queue);
 
-queue* CreateQueue(int max)
+queue* CreateQueue(int capacity)
 {
     queue* queue = malloc(sizeof(*queue));
-    queue->data = calloc(max, sizeof(int));
-    queue->capacity = max;
+    queue->data = calloc(capacity, sizeof(int));
+    queue->capacity = capacity;
     queue->rear = queue->front = 0;
     return queue;
 }

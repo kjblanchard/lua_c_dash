@@ -43,6 +43,8 @@ static int IncreaseVectorSize(vector* vector)
 
 unsigned char VectorRemoveItem(vector* vector, int value)
 {
+    if(!vector->size)
+        return 0;
     unsigned char found = 0;
     for (int i = 0; i < vector->size; ++i) 
     {
@@ -58,7 +60,7 @@ unsigned char VectorRemoveItem(vector* vector, int value)
     }
     if(found)
     {
-        --vector->size;
+        vector->size = vector->size -1;
     }
     return found;
 
