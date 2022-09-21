@@ -138,8 +138,9 @@ static int LoadBgmFromLua(lua_State* state)
         Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
-        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
-        char* full_name = malloc(sizeof(char) * name_length);
+        //We need to add one here since strlen doesn't include the null terminator.
+        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix) + 1;
+        char* full_name = calloc(name_length, sizeof(char));
         strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
         strcat(full_name,sfx_suffix);
         bgm->bgm_name = full_name;
@@ -159,7 +160,6 @@ static int LoadBgmFromLua(lua_State* state)
     {
         bgm_music[i] = bgm_list[i];
     }
-    //memcpy(bgm_music,bgm_list,sizeof(Bgm*) * bgm_length);
     //Pop off the bgm table
     lua_pop(state, 1);
     return 1;
@@ -191,8 +191,8 @@ static int LoadSfxFromLua(lua_State* state)
         Sfx* sfx = malloc(sizeof(*sfx));
         lua_getfield(state,-1,"name");
         const char* sfx_suffix = lua_tostring(state, -1);
-        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix);
-        char* full_name = malloc(sizeof(char) * name_length);
+        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix) +1;
+        char* full_name = calloc(name_length, sizeof(char));
         strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
         strcat(full_name,sfx_suffix);
         sfx->sfx_name = full_name;
@@ -207,7 +207,6 @@ static int LoadSfxFromLua(lua_State* state)
     {
         sfx_sounds[i] = sfx_list[i];
     }
-    //memcpy(sfx_sounds,sfx_list,sizeof(Sfx*) * sfx_length);
     lua_pop(state,1);
     return 1;
 
