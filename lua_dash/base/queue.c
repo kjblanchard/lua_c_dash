@@ -54,7 +54,7 @@ static void MoveDataToFrontOfQueue(queue* queue)
     int new_rear = queue->rear - queue->front;
     for(size_t i = queue->front; i < queue->rear; ++i)
     {
-        queue->data[insert_pos] = queue->data[i];
+        queue->data[insert_pos++] = queue->data[i];
 
     }
 

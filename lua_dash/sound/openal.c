@@ -159,10 +159,26 @@ static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 //        printf("A buffer is playing currently: %d\n", player->playing_buffers->data[i]);
 //    }
     int buffer_num = Dequeue(player->free_buffers);
+    printf("The next playing sound number is  for %d \n", buffer_num);
     //int buffer_num = --player->free_buffers;
     alSourceRewind(sfx_player->sources[buffer_num]);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error queing buffers\n");
+        return 0;
+    }
     alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error queing buffers\n");
+        return 0;
+    }
     alSourcef(sfx_player->sources[buffer_num], AL_GAIN, volume);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error queing buffers\n");
+        return 0;
+    }
     alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
     if (alGetError() != AL_NO_ERROR)
     {
@@ -416,8 +432,12 @@ static int UpdatePlayer(StreamPlayer *player)
 }
 static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num)
 {
-            alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
-            Enqueue(player->free_buffers, source_num);
+    alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            fprintf(stderr, "Unqueue error");
+        }
+    Enqueue(player->free_buffers, source_num);
 
 }
 static int UpdateSfxPlayer(SfxPlayer *player)
