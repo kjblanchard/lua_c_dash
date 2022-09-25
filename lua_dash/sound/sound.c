@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <lua.h>
 #include <lauxlib.h>
@@ -113,8 +114,8 @@ static int LoadBgmFromLua(lua_State* state)
     lua_gettable(state, -2);
     if(!lua_istable(state, -1))
     {
-        printf("This isn't a proper table for bgm");
-        exit(2);
+        LogError("This isn't a proper table for bgm");
+        return 0;
     }
     //Initialize a temporary holding place for the bgms since we don't know how many there is.
     Bgm* bgm_list[MAX_BGM_FROM_CONFIG];
@@ -137,12 +138,12 @@ static int LoadBgmFromLua(lua_State* state)
         }
         Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
-        const char* sfx_suffix = lua_tostring(state, -1);
-        //We need to add one here since strlen doesn't include the null terminator.
-        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix) + 1;
-        char* full_name = calloc(name_length, sizeof(char));
-        strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
-        strcat(full_name,sfx_suffix);
+         size_t len;
+        const char* sfx_suffix = lua_tolstring(state, -1, &len);
+        //We need to add one here, since strlen and len do not include their null terminator, and we need that in our string.
+        size_t name_length = strlen(sfx_prefix) + len + 1;
+        char* full_name = malloc(name_length * sizeof(char));
+        snprintf(full_name, name_length, "%s%s",sfx_prefix,sfx_suffix);
         bgm->bgm_name = full_name;
         lua_getfield(state,-2,"loop_start");
         bgm->loop_begin = lua_tonumber(state, -1);
@@ -154,7 +155,7 @@ static int LoadBgmFromLua(lua_State* state)
         ++i;
     }
     //Copy to right sized array, and destroy temporary one.
-    bgm_length = i -1;
+    bgm_length = i - 1;
     bgm_music = calloc(bgm_length, sizeof(bgm_music));
     for (size_t i = 0; i < bgm_length; ++i) 
     {
@@ -190,11 +191,13 @@ static int LoadSfxFromLua(lua_State* state)
         }
         Sfx* sfx = malloc(sizeof(*sfx));
         lua_getfield(state,-1,"name");
-        const char* sfx_suffix = lua_tostring(state, -1);
-        size_t name_length = strlen(sfx_prefix) + strlen(sfx_suffix) +1;
-        char* full_name = calloc(name_length, sizeof(char));
-        strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
-        strcat(full_name,sfx_suffix);
+         size_t len;
+        const char* sfx_suffix = lua_tolstring(state, -1, &len);
+        size_t name_length = strlen(sfx_prefix) + len +1;
+        char* full_name = malloc(name_length * sizeof(char));
+        snprintf(full_name, name_length, "%s%s",sfx_prefix, sfx_suffix );
+        //strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
+        //strcat(full_name,sfx_suffix);
         sfx->sfx_name = full_name;
         sfx->loaded_sfx = NULL;
         sfx_list[i-1] = sfx;
