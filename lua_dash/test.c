@@ -23,10 +23,19 @@ static void ProcessInput()
     {
         if(debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
         {
-            if(sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_BACKQUOTE)
+            if(sdlEvent.type == SDL_KEYDOWN && (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE || sdlEvent.key.keysym.sym == SDLK_ESCAPE))
             {
                 debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                 ToggleDebugWindow(debug_window_enabled);
+            }
+            else if (sdlEvent.type == SDL_WINDOWEVENT)
+            {
+                if(sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+                {
+                    debug_window_enabled = (debug_window_enabled) ? 0 : 1;
+                    ToggleDebugWindow(debug_window_enabled);
+
+                }
             }
             else
                 ProcessDebugWindowInput(&sdlEvent);
