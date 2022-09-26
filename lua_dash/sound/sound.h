@@ -29,7 +29,9 @@ int PlayBgm(int bgm_number, float volume);
  *
  * @return 1 if successful, 0 if failed.
  */
-int StopBgm(int stop_at_end);
+int StopBgm();
+int PauseBgm();
+int UnPauseBgm();
 /**
  * @brief Plays a Sound effect once in its own buffer.  There is only a total of 10 buffers available for playing at a time.
  *

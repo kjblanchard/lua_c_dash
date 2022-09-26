@@ -122,6 +122,13 @@ void ProcessDebugWindowGraphics()
         }
         if (nk_button_label(debug_window->ctx, "PlaySfx"))
             PlaySfxOneShot(sound_num, volume);
+        if (nk_button_label(debug_window->ctx, "StopMusic"))
+            StopBgm();
+        if (nk_button_label(debug_window->ctx, "PauseMusic"))
+            PauseBgm();
+        if (nk_button_label(debug_window->ctx, "UnpauseMusic"))
+            UnPauseBgm();
+
         nk_layout_row_dynamic(debug_window->ctx, 30, 2);
         if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;

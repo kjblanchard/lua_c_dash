@@ -68,6 +68,7 @@ static int HandleProcessedBuffer(StreamPlayer* player);
 static void ClosePlayerFile(StreamPlayer *player);
 static int StartPlayer(StreamPlayer *player);
 static int UpdatePlayer(StreamPlayer *player);
+static int StopBgm(StreamPlayer* player);
 static int UpdateSfxPlayer(SfxPlayer *player);
 static int RestartStream(StreamPlayer *player);
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
@@ -265,6 +266,42 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
     return 1;
 }
 
+int StopBgmAl()
+{
+    return StopBgm(bgm_player);
+}
+
+static int StopBgm(StreamPlayer* player)
+{
+    alSourceStop(player->source);
+    alSourcei(player->source, AL_BUFFER, 0);
+    ClosePlayerFile(player);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        LogError("Error stopping playback");
+        return 0;
+    }
+    return 1;
+
+}
+
+int PauseBgmAl()
+{
+    ALint state;
+    alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
+    if(state == AL_PLAYING)
+        alSourcePause(bgm_player->source);
+    return 1;
+}
+int UnpauseBgmAl()
+{
+    ALint state;
+    alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
+    if(state == AL_PAUSED)
+        alSourcePlay(bgm_player->source);
+    return 0;
+}
+
 Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename)
 {
 
@@ -392,6 +429,16 @@ static int UpdatePlayer(StreamPlayer *player)
         fprintf(stderr, "Error checking source state\n");
         return 0;
     }
+    ALint queued;
+    if(state == AL_STOPPED)
+    {
+        /* If no buffers are queued, playback is finished or starved */
+        alGetSourcei(player->source, AL_BUFFERS_QUEUED, &queued);
+        if (queued == 0)
+            return 0;
+    }
+    else if (state == AL_PAUSED)
+        return 1;
 
     while (processed_buffers > 0)
     {
@@ -399,16 +446,11 @@ static int UpdatePlayer(StreamPlayer *player)
         --processed_buffers;
     }
 
-    //TODO handle this differently.
     if (state != AL_PLAYING && state != AL_PAUSED)
     {
-        puts("Just hit underrun, and we really shouldn't");
-        ALint queued;
 
-        /* If no buffers are queued, playback is finished or starved */
-        alGetSourcei(player->source, AL_BUFFERS_QUEUED, &queued);
-        if (queued == 0)
-            return 0;
+        LogWarn("We are not playing OR paused, we are %d", state);
+
 
         alSourcePlay(player->source);
         if (alGetError() != AL_NO_ERROR)

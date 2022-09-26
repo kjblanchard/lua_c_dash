@@ -228,6 +228,16 @@ int PlayBgm(int bgm_number, float volume)
 
 int StopBgm(int stop_at_end)
 {
+    return StopBgmAl();
+}
+int PauseBgm()
+{
+    PauseBgmAl();
+    return 1;
+}
+int UnPauseBgm()
+{
+    UnpauseBgmAl();
     return 1;
 }
 
