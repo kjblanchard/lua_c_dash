@@ -10,7 +10,7 @@
 /**
  * @brief Load the Sound backend, this must be called before any other functions are available.
  *
- * @return 
+ * @return 1 if successful, 0 if failure.
  */
 int InitializeSound();
 /**

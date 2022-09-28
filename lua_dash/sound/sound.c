@@ -43,11 +43,11 @@ static unsigned char bgm_length = 0;
  */
 static unsigned char sfx_length = 0;
 /**
- * @brief An array of Sg_Bgms that was loaded from the config file.
+ * @brief A pointer to an array of Sg_Bgms that was loaded from the config file.
  */
 static Bgm** bgm_music;
 /**
- * @brief An array of Sg_Sfx that was loaded from the config file
+ * @brief A pointer to an array of Sg_Sfx that was loaded from the config file
  */
 static Sfx** sfx_sounds;
 /**
@@ -72,7 +72,6 @@ static int LoadBgmFromLua(lua_State* state);
  * @param state The lua state that we should use.
  */
 static void LoadSoundConfig(lua_State* state);
-//TODO is there way to get rid of this?
 /**
  * @brief The prefix that we should add to the config file so that we look in the right location.
  */
@@ -95,10 +94,7 @@ static void LoadSoundConfig(lua_State* state)
 {
     lua_getglobal(state, "Sound");
     if(!lua_istable(state, -1))
-    {
-        printf("This isn't a sound table");
-        exit(2);
-    }
+        LogError("This isn't a sound table");
     LoadBgmFromLua(state);
     LoadSfxFromLua(state);
     lua_pop(state, 1);
@@ -107,40 +103,38 @@ static void LoadSoundConfig(lua_State* state)
 
 static int LoadBgmFromLua(lua_State* state)
 {
-    //Push the string bgm to the table.
+    //Push the string bgm to the stack
     lua_pushstring(state, "Bgm");
-    //get from the table at location -2 on the stack, the -1 key
-    //Sound[Bgm]
+    //get from the table at location -2 on the stack, using the -1 key, which is Sound[Bgm]
     lua_gettable(state, -2);
     if(!lua_istable(state, -1))
     {
         LogError("This isn't a proper table for bgm");
         return 0;
     }
-    //Initialize a temporary holding place for the bgms since we don't know how many there is.
+    //Initialize a temporary holding place for the bgms since we don't know how many there is, with the max amount that we set in the macro.
     Bgm* bgm_list[MAX_BGM_FROM_CONFIG];
 
-    //We need to loop through everything in that table now, lua indexes start at 1.
+    //We need to loop through everything in that table now, lua indexes start at 1, and we don't know how long it is so we will break if index is nil below.
     int i = 1;
     while(1)
     {
-        //Push the key onto the stack.
-        //-1 on the stack is the index we need, -2 on the stack is the Table we are iteratint through.
+        //Push the key onto the stack.  -1 on the stack is the index we need, -2 on the stack is the Table we are iterating through.
         lua_pushinteger(state, i);
-        //Try and get from the last table on the stack.
+        //Try and get from the last table on the stack, remember this uses -1 as the key.
         lua_gettable(state, -2);
-        //Check if it is nil, if it is nil, there is no more elements.
+        //Check if it is nil, if it is nil, there is no more elements (foreach is ended)
         if(lua_isnil(state, -1))
         {
-            //Pop off the table.
+            //Pop off the table. before we break to clear stack that we had put there.
             lua_pop(state, 1);
             break;
         }
         Bgm* bgm = malloc(sizeof(*bgm));
         lua_getfield(state,-1,"name");
-         size_t len;
+        size_t len;
         const char* sfx_suffix = lua_tolstring(state, -1, &len);
-        //We need to add one here, since strlen and len do not include their null terminator, and we need that in our string.
+        //We need to add one here, since strlen and len do not include their null terminator, and we need that in our string and we are going to combine things.
         size_t name_length = strlen(sfx_prefix) + len + 1;
         char* full_name = malloc(name_length * sizeof(char));
         snprintf(full_name, name_length, "%s%s",sfx_prefix,sfx_suffix);
@@ -154,13 +148,11 @@ static int LoadBgmFromLua(lua_State* state)
         lua_pop(state, 4);
         ++i;
     }
-    //Copy to right sized array, and destroy temporary one.
-    bgm_length = i - 1;
+    //Subtract one since lua tables start at 1.
+    bgm_length = --i;
+    //Create right sized array, and deep copy memory over to it.
     bgm_music = calloc(bgm_length, sizeof(bgm_music));
-    for (size_t i = 0; i < bgm_length; ++i) 
-    {
-        bgm_music[i] = bgm_list[i];
-    }
+    memcpy(bgm_music, bgm_list, sizeof(bgm_music) * bgm_length);
     //Pop off the bgm table
     lua_pop(state, 1);
     return 1;
