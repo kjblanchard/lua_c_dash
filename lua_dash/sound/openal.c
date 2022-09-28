@@ -20,9 +20,6 @@
  *
  */
 typedef struct StreamPlayer {
-    /**
-     * @brief Array of buffers to use for referencing the buffer_id in openal
-     */
     ALuint buffers[BGM_NUM_BUFFERS];
     ALuint source;
     ogg_int64_t loop_point_begin;
@@ -54,34 +51,177 @@ typedef enum BufferFillFlags
     Buff_Fill_MusicHitLoopPoint
 } BufferFillFlags;
 
+/**
+ * @brief  The bgm player that we use, currently only one bgm player can exist.
+ */
 static StreamPlayer* bgm_player;
+/**
+ * @brief The sfx player, currently only one sfx player can exist
+ */
 static SfxPlayer* sfx_player;
-static StreamPlayer* NewPlayer(void);
+/**
+ * @brief Constructor for a BgmPlayer
+ *
+ * @return A initialized bgmplayer
+ */
+static StreamPlayer* NewPlayer();
+/**
+ * @brief Constructor for a SFX player
+ *
+ * @return A ready to use sfx player.
+ */
 static SfxPlayer* NewSfxPlayer();
+/**
+ * @brief Gets the BGM source ready to play, and preloads the BGM buffers with data.
+ *
+ * @param player The BGM player to load.
+ * @param filename The filename to open and load.
+ * @param loop_begin The seconds where the loop should begin.
+ * @param loop_end The seconds where the loop should end.
+ * @param volume The volume that we should play, between 0 and 1.
+ *
+ * @return 
+ */
 static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end, float volume);
+/**
+ * @brief Preloads all of the buffers in a player
+ *
+ * @param player The player to preload the buffer data.
+ *
+ * @return 1 if successful, 0 if failed.
+ */
 static int PreBakeBuffers(StreamPlayer* player);
+/**
+ * @brief Cleans up a BGM player and releases memory
+ *
+ * @param player The bgm player to destroy
+ */
 static void DeletePlayer(StreamPlayer* player);
+/**
+ * @brief Opens a new file and sets up the loop points on the player.  Closes the current file.
+ *
+ * @param player The bgm_player that this should be performed on
+ * @param filename The filename that should be read
+ * @param loop_begin The point that we should start looping
+ * @param loop_end The point we should end looping
+ *
+ * @return 
+ */
 static int OpenPlayerFile(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end);
+/**
+ * @brief Gets the loop points for the song, based on the configuration file.
+ *
+ * @param player The player to load the song into
+ * @param loop_begin The time in seconds where the loop will begin after looping.
+ * @param loop_end The t ime in seconds where the song will return to the loop begin.
+ */
 static void GetLoopPoints(StreamPlayer* player, double* begin, double* end);
+/**
+ * @brief Handles Fully loading a buffer, and setting flags for if we have reached the end of the song or a loop point.
+ *
+ * @param player The bgm_player to perform this on
+ * @param buff_flags the buffer flags that will be modified with the result.
+ *
+ * @return The amount of bytes that was read from the file.
+ */
 static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags);
+/**
+ * @brief Unqueue and handle each buffer that needs processing.
+ *
+ * @param player The strem player to get info from
+ * @param processed How many processed buffers to handle
+ *
+ * @return 1 for Success, and 0 for failure.
+ */
 static int HandleProcessedBuffer(StreamPlayer* player);
+/**
+ * @brief Deallocates the current memory buffer, so that it can be used for another song.
+ *
+ * @param player The bgm stream to clear.
+ */
 static void ClosePlayerFile(StreamPlayer *player);
+/**
+ * @brief Sets the source to playing, which starts to play the queued buffers.
+ *
+ * @param player The bgm player to start.
+ *
+ * @return 
+ */
 static int StartPlayer(StreamPlayer *player);
+/**
+ * @brief Updates the passed in player, this is needed as it processes the stream and reads bytes and loads buffers.
+ *
+ * @param player The player to update.
+ *
+ * @return 1 if successful, 0 if failed.
+ */
 static int UpdatePlayer(StreamPlayer *player);
+/**
+ * @brief Stops a BGM from playing.
+ *
+ * @param player The player to stop
+ *
+ * @return 1 if successful, 0 if failed.
+ */
 static int StopBgm(StreamPlayer* player);
+/**
+ * @brief Pauses the selected sfx player
+ *
+ * @param player The sfx player to stop playing.
+ *
+ * @return 1 0n successful, 0 on failure.
+ */
+static int PauseBgm(StreamPlayer* player);
+/**
+ * @brief Checks to see if any playing sfx buffers are finished, and then reloads them into the free queue if so.
+ *
+ * @param player The sfx player to check.
+ *
+ * @return 1 if successful, 0 if not.
+ */
 static int UpdateSfxPlayer(SfxPlayer *player);
+/**
+ * @brief Restart the stream from the loop point.
+ *
+ * @param player Pointer to a stream player
+ *
+ * @return 
+ */
 static int RestartStream(StreamPlayer *player);
+/**
+ * @brief Loads a filename into a Loaded Sfx file for playing later.
+ *
+ * @param player The player to load with
+ * @param filename The filename of the file to load.
+ *
+ * @return A Sg_Loaded_Sfx struct with the loaded file and info for playing later.
+ */
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename);
+/**
+ * @brief Plays a Sound effect from an already loaded sound file.
+ *
+ * @param player The player to play with
+ * @param sfx_file The already loaded file with the info to play.
+ * @param volume The volume to play with, between 0 and 1.
+ *
+ * @return  1 on success, 0 on failure.
+ */
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* loaded_sfx, float volume);
+/**
+ * @brief Cleans up a SFX player and releases memory
+ *
+ * @param player The SFX player to destroy
+ */
 static void DeleteSfxPlayer(SfxPlayer *player);
+/**
+ * @brief Unqueues a specific sfx buffer, and then puts it back into the free buffers.
+ *
+ * @param player The player to release from
+ * @param source_num The buffer/source number that we are processing.
+ */
 static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num);
 
 
-/**
- * @brief Initialize the OpenAl backend, and create the static players.
- *
- * @return
- */
 int InitializeAl()
 {
     if (InitAL() != 0)
@@ -91,23 +231,15 @@ int InitializeAl()
     return 1;
 }
 
-/**
- * @brief Constructor for a BgmPlayer
- *
- * @return A initialized bgmplayer
- */
-static StreamPlayer* NewPlayer(void)
+static StreamPlayer* NewPlayer()
 {
     StreamPlayer* player;
     player = calloc(1, sizeof(*player));
     assert(player != NULL);
-    /* Generate the buffers and source */
     alGenBuffers(BGM_NUM_BUFFERS, player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
     alGenSources(1, &player->source);
     assert(alGetError() == AL_NO_ERROR && "Could not create source");
-    /* Set parameters so mono sources play out the front-center speaker and
-     * won't distance attenuate. */
     alSource3i(player->source, AL_POSITION, 0, 0, -1);
     alSourcei(player->source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
@@ -117,11 +249,7 @@ static StreamPlayer* NewPlayer(void)
     player->membuf = malloc(data_read_size);
     return player;
 }
-/**
- * @brief Constructor for a SFX player
- *
- * @return A ready to use sfx player.
- */
+
 static SfxPlayer* NewSfxPlayer()
 {
     SfxPlayer* sfx_player;
@@ -148,32 +276,6 @@ int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume)
     return 1;
 
 }
-/**
- * @brief Plays a Sound effect from an already loaded sound file.
- *
- * @param player The player to play with
- * @param sfx_file The already loaded file with the info to play.
- * @param volume The volume to play with, between 0 and 1.
- *
- * @return  1 on success, 0 on failure.
- */
-static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
-{
-    if(QueueIsEmpty(player->free_buffers))
-    {
-        LogWarn("Buffers are empty");
-        return 0;
-    }
-    int buffer_num = Dequeue(player->free_buffers);
-    alSourceRewind(sfx_player->sources[buffer_num]);
-    alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
-    alSourcef(sfx_player->sources[buffer_num], AL_GAIN, volume);
-    alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
-    alSourceQueueBuffers(sfx_player->sources[buffer_num], 1, &sfx_player->buffers[buffer_num]);
-    alSourcePlay(sfx_player->sources[buffer_num]);
-    VectorPushBack(player->playing_buffers, buffer_num);
-    return 1;
-}
 
 int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float volume)
 {
@@ -186,17 +288,7 @@ int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float 
     return 1;
 
 }
-/**
- * @brief Gets the BGM source ready to play, and preloads the BGM buffers with data.
- *
- * @param player The BGM player to load.
- * @param filename The filename to open and load.
- * @param loop_begin The seconds where the loop should begin.
- * @param loop_end The seconds where the loop should end.
- * @param volume The volume that we should play, between 0 and 1.
- *
- * @return 
- */
+
 static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_begin, double* loop_end, float volume)
 {
     if (!OpenPlayerFile(bgm_player,filename, loop_begin, loop_end))
@@ -208,7 +300,7 @@ static int PreBakeBgm(StreamPlayer* player, const char* filename, double* loop_b
     return 1;
 }
 
-int PreBakeBuffers(StreamPlayer* player)
+static int PreBakeBuffers(StreamPlayer* player)
 {
     ALsizei i;
     BufferFillFlags buf_flags;
@@ -226,16 +318,18 @@ int PreBakeBuffers(StreamPlayer* player)
     alSourceQueueBuffers(player->source, i, player->buffers);
     return 1;
 }
-/**
- * @brief Opens a new file and sets up the loop points on the player.  Closes the current file.
- *
- * @param player The bgm_player that this should be performed on
- * @param filename The filename that should be read
- * @param loop_begin The point that we should start looping
- * @param loop_end The point we should end looping
- *
- * @return 
- */
+
+static int StartPlayer(StreamPlayer *player)
+{
+    alSourcePlay(player->source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error starting playback\n");
+        return 0;
+    }
+    return 1;
+}
+
 static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end)
 {
     if(player->file_loaded)
@@ -266,6 +360,31 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
     return 1;
 }
 
+static void GetLoopPoints(StreamPlayer*player, double* loop_begin, double* loop_end)
+{
+    unsigned char not_at_beginning = 0;
+    if(loop_begin)
+    {
+        ov_time_seek(&player->vbfile, *loop_begin);
+        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
+        not_at_beginning = 1;
+    }
+    else
+        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
+    //Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
+    //Due to us checking this on every step.
+    if(loop_end)
+    {
+        ov_time_seek(&player->vbfile, *loop_end);
+        player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
+        not_at_beginning = 1;
+    }
+    else
+        player->loop_point_end = ov_pcm_total(&player->vbfile,-1) * player->vbinfo->channels * sizeof(short);
+    if(not_at_beginning)
+        ov_raw_seek(&player->vbfile, 0);
+}
+
 int StopBgmAl()
 {
     return StopBgm(bgm_player);
@@ -287,18 +406,27 @@ static int StopBgm(StreamPlayer* player)
 
 int PauseBgmAl()
 {
+    return PauseBgm(bgm_player);
+}
+
+static int PauseBgm(StreamPlayer* player)
+{
     ALint state;
     alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
-    if(state == AL_PLAYING)
-        alSourcePause(bgm_player->source);
+    if(state != AL_PLAYING)
+        return 0;
+    alSourcePause(bgm_player->source);
     return 1;
+
 }
+
 int UnpauseBgmAl()
 {
     ALint state;
     alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
     if(state == AL_PAUSED)
-        alSourcePlay(bgm_player->source);
+        alSourcePause(bgm_player->source);
+    alSourcePlay(bgm_player->source);
     return 0;
 }
 
@@ -308,14 +436,7 @@ Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename)
     return LoadSfxFile(sfx_player, filename);
 
 }
-/**
- * @brief Loads a filename into a Loaded Sfx file for playing later.
- *
- * @param player The player to load with
- * @param filename The filename of the file to load.
- *
- * @return A Sg_Loaded_Sfx struct with the loaded file and info for playing later.
- */
+
 static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename)
 {
     //TODO Close a sfx_player
@@ -363,54 +484,25 @@ static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename)
     return loaded_sfx;
 
 }
-/**
- * @brief Gets the loop points for the song, based on the configuration file.
- *
- * @param player The player to load the song into
- * @param loop_begin The time in seconds where the loop will begin after looping.
- * @param loop_end The t ime in seconds where the song will return to the loop begin.
- */
-static void GetLoopPoints(StreamPlayer*player, double* loop_begin, double* loop_end)
+
+static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 {
-    unsigned char not_at_beginning = 0;
-    if(loop_begin)
+    if(QueueIsEmpty(player->free_buffers))
     {
-        ov_time_seek(&player->vbfile, *loop_begin);
-        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
-        not_at_beginning = 1;
-    }
-    else
-        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
-    //Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
-    //Due to us checking this on every step.
-    if(loop_end)
-    {
-        ov_time_seek(&player->vbfile, *loop_end);
-        player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
-        not_at_beginning = 1;
-    }
-    else
-        player->loop_point_end = ov_pcm_total(&player->vbfile,-1) * player->vbinfo->channels * sizeof(short);
-    if(not_at_beginning)
-        ov_raw_seek(&player->vbfile, 0);
-}
-/**
- * @brief Sets the source to playing, which starts to play the queued buffers.
- *
- * @param player The bgm player to start.
- *
- * @return 
- */
-static int StartPlayer(StreamPlayer *player)
-{
-    alSourcePlay(player->source);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "Error starting playback\n");
+        LogWarn("Buffers are empty");
         return 0;
     }
+    int buffer_num = Dequeue(player->free_buffers);
+    alSourceRewind(sfx_player->sources[buffer_num]);
+    alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
+    alSourcef(sfx_player->sources[buffer_num], AL_GAIN, volume);
+    alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
+    alSourceQueueBuffers(sfx_player->sources[buffer_num], 1, &sfx_player->buffers[buffer_num]);
+    alSourcePlay(sfx_player->sources[buffer_num]);
+    VectorPushBack(player->playing_buffers, buffer_num);
     return 1;
 }
+
 
 void UpdateAl()
 {
@@ -462,13 +554,7 @@ static int UpdatePlayer(StreamPlayer *player)
 
     return 1;
 }
-/**
- * @brief Checks to see if any playing sfx buffers are finished, and then reloads them into the free queue if so.
- *
- * @param player The sfx player to check.
- *
- * @return 1 if successful, 0 if not.
- */
+
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers;
@@ -496,26 +582,14 @@ static int UpdateSfxPlayer(SfxPlayer *player)
     }
     return 1;
 }
-/**
- * @brief Unqueues a specific sfx buffer, and then puts it back into the free buffers.
- *
- * @param player The player to release from
- * @param source_num The buffer/source number that we are processing.
- */
+
 static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num)
 {
     alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
     Enqueue(player->free_buffers, source_num);
 
 }
-/**
- * @brief Unqueue and handle each buffer that needs processing.
- *
- * @param player The strem player to get info from
- * @param processed How many processed buffers to handle
- *
- * @return 1 for Success, and 0 for failure.
- */
+
 static int HandleProcessedBuffer(StreamPlayer* player)
 {
     ALuint bufid;
@@ -536,14 +610,7 @@ static int HandleProcessedBuffer(StreamPlayer* player)
     }
     return 1;
 }
-/**
- * @brief Handles Fully loading a buffer, and setting flags for if we have reached the end of the song or a loop point.
- *
- * @param player The bgm_player to perform this on
- * @param buff_flags the buffer flags that will be modified with the result.
- *
- * @return The amount of bytes that was read from the file.
- */
+
 static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
 {
     //Set the buffer flags to 0, as it is normal
@@ -589,13 +656,6 @@ static long LoadBufferData(StreamPlayer* player, BufferFillFlags* buff_flags)
     return total_buffer_bytes_read;
 }
 
-/**
- * @brief Restart the stream from the loop point.
- *
- * @param player Pointer to a stream player
- *
- * @return 
- */
 static int RestartStream(StreamPlayer *player)
 {
     ov_pcm_seek_lap(&player->vbfile, player->loop_point_begin);
@@ -611,22 +671,7 @@ int CloseAl()
     CloseAL();
     return 0;
 }
-/**
- * @brief Deallocates the current memory buffer, so that it can be used for another song.
- *
- * @param player The bgm stream to clear.
- */
-static void ClosePlayerFile(StreamPlayer *player)
-{
-    ov_clear(&player->vbfile);
-    player->total_bytes_read_this_loop = 0;
-    player->file_loaded = 0;
-}
-/**
- * @brief Cleans up a BGM player and releases memory
- *
- * @param player The bgm player to destroy
- */
+
 static void DeletePlayer(StreamPlayer *player)
 {
     ClosePlayerFile(player);
@@ -640,18 +685,17 @@ static void DeletePlayer(StreamPlayer *player)
     memset(player, 0, sizeof(*player));
     free(player);
 }
-/**
- * @brief Cleans up a BGM player and releases memory
- *
- * @param player The bgm player to destroy
- */
+
+static void ClosePlayerFile(StreamPlayer *player)
+{
+    ov_clear(&player->vbfile);
+    player->total_bytes_read_this_loop = 0;
+    player->file_loaded = 0;
+}
+
+
 static void DeleteSfxPlayer(SfxPlayer *sfx_player)
 {
     alDeleteSources(MAX_SFX_SOUNDS, sfx_player->sources);
     alDeleteBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
-    if (alGetError() != AL_NO_ERROR)
-        fprintf(stderr, "Failed to delete object IDs\n");
-
-    memset(sfx_player, 0, sizeof(*sfx_player));
-    free(sfx_player);
 }

@@ -33,7 +33,7 @@ int StopBgm();
 int PauseBgm();
 int UnPauseBgm();
 /**
- * @brief Plays a Sound effect once in its own buffer.  There is only a total of 10 buffers available for playing at a time.
+ * @brief Plays a Sound effect once in its own buffer.  There is only a total of 10 buffers available for playing at a time. If the sound is not loaded, will load the sound
  *
  * @param sfx_number The Sound effect to play
  *

@@ -151,7 +151,7 @@ static int LoadBgmFromLua(lua_State* state)
     //Subtract one since lua tables start at 1.
     bgm_length = --i;
     //Create right sized array, and deep copy memory over to it.
-    bgm_music = calloc(bgm_length, sizeof(bgm_music));
+    bgm_music = malloc(bgm_length * sizeof(bgm_music));
     memcpy(bgm_music, bgm_list, sizeof(bgm_music) * bgm_length);
     //Pop off the bgm table
     lua_pop(state, 1);
@@ -164,12 +164,8 @@ static int LoadSfxFromLua(lua_State* state)
     lua_pushstring(state, "Sfx");
     lua_gettable(state, -2);
     if(!lua_istable(state, -1))
-    {
         printf("This isn't a proper table for sfx");
-        exit(2);
-    }
     Sfx* sfx_list[MAX_SFX_FROM_CONFIG];
-
     int i = 1;
     while(1)
     {
@@ -177,7 +173,6 @@ static int LoadSfxFromLua(lua_State* state)
         lua_gettable(state, -2);
         if(lua_isnil(state, -1))
         {
-            //Pop off the table.
             lua_pop(state, 1);
             break;
         }
@@ -188,20 +183,15 @@ static int LoadSfxFromLua(lua_State* state)
         size_t name_length = strlen(sfx_prefix) + len +1;
         char* full_name = malloc(name_length * sizeof(char));
         snprintf(full_name, name_length, "%s%s",sfx_prefix, sfx_suffix );
-        //strncpy(full_name,sfx_prefix,strlen(sfx_prefix));
-        //strcat(full_name,sfx_suffix);
         sfx->sfx_name = full_name;
         sfx->loaded_sfx = NULL;
         sfx_list[i-1] = sfx;
         lua_pop(state, 1);
         ++i;
     }
-    sfx_length = i -1;
-    sfx_sounds = calloc(sfx_length, sizeof(Sfx*));
-    for (size_t i = 0; i < sfx_length; ++i) 
-    {
-        sfx_sounds[i] = sfx_list[i];
-    }
+    sfx_length = --i;
+    sfx_sounds = malloc(sfx_length * sizeof(sfx_sounds));
+    memcpy(sfx_sounds, sfx_list, sizeof(sfx_sounds) * sfx_length);
     lua_pop(state,1);
     return 1;
 
@@ -209,7 +199,6 @@ static int LoadSfxFromLua(lua_State* state)
 
 int PlayBgm(int bgm_number, float volume)
 {
-
     if(bgm_number >= bgm_length)
     {
         LogWarn("The bgm number you tried to play doesn't exist.");
@@ -224,13 +213,11 @@ int StopBgm(int stop_at_end)
 }
 int PauseBgm()
 {
-    PauseBgmAl();
-    return 1;
+    return PauseBgmAl();
 }
 int UnPauseBgm()
 {
-    UnpauseBgmAl();
-    return 1;
+    return UnpauseBgmAl();
 }
 
 int PlaySfxOneShot(int sfx_number, float volume)

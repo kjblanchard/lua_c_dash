@@ -14,7 +14,7 @@ typedef struct Sg_Loaded_Sfx{
 /**
  * @brief Initialize the openAl backend
  *
- * @return 
+ * @return 1 if successful, 0 if not.
  */
 int InitializeAl();
 /**
@@ -28,8 +28,20 @@ int InitializeAl();
  */
 int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float volume);
 int StopBgmAl();
+/**
+ * @brief Pauses the playing bgm_player.
+ *
+ * @return 1 if successful, 0 if failed.
+ */
 int PauseBgmAl();
+/**
+ * @brief Unpauses the paused bgm_player
+ *
+ * @return 1 if successful, 0 if failed.
+ */
 int UnpauseBgmAl();
+Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
+int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume);
 /**
  * @brief Updates the openal sound system.
  */
@@ -41,5 +53,3 @@ void UpdateAl();
  */
 int CloseAl();
 
-Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
-int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume);
