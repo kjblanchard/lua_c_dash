@@ -1,3 +1,10 @@
+/**
+ * @file queue.h
+ * @brief Fixed size queue, that you can enqueue and dequeue.
+ * @author Kevin Blanchard
+ * @version 0.1
+ * @date 2022-09-28
+ */
 #pragma once
 
 /**

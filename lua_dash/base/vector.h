@@ -1,3 +1,10 @@
+/**
+ * @file vector.h
+ * @brief An array that can dynamically grow as you add elements to it, as well as remove items.
+ * @author Kevin Blanchard
+ * @version 0.1
+ * @date 2022-09-28
+ */
 #pragma once
 
 typedef struct vector {
