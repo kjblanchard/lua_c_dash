@@ -1,12 +1,13 @@
 #Meke it so that dir and build will always be performed.
 
-.PHONY: debug rebuild doc destroy
+.PHONY: debug rebuild doc destroy optimize
 BUILD_FOLDER = build
 
 all: build
 
 CC = clang
-BINARY_NAME = $(BUILD_FOLDER)/game
+BINARY_NAME = game
+BINARY_PATH = $(BUILD_FOLDER)/$(BINARY_NAME)
 SRC_FOLDERS = ./lua_dash/core \
 			  ./lua_dash/sound \
 			  ./lua_dash/base \
@@ -29,9 +30,11 @@ DEPFLAGS = -MMD -MP -MF $@.d
 # Include the dependency tracking files
 -include $(DEP_FILES)
 SCRIPTS = ./lua_dash/*.lua
+
+LIBS_FOLDER = /usr/local/lib
 # Compile everything as static, except openal due to LGPL.
 LDFLAGS = `sdl2-config --cflags --static-libs` \
-		  -L/usr/local/lib \
+		  -L$(LIBS_FOLDER) \
 		  -llua -lm \
 		  -l openal \
 		  -l vorbisfile \
@@ -54,7 +57,7 @@ $(BUILD_FOLDER)/%.o: %.c
 # $^ means all prerequisites28.219
 build: $(OBJ_FILES)
 	echo Linking $(notdir $@)
-	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)
+	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_PATH)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)
 
 destroy:
@@ -63,15 +66,15 @@ destroy:
 rebuild: destroy full
 full: $(OBJ_FILES)
 	echo Linking $(notdir $@)
-	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_NAME)
+	@$(CC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $(BINARY_PATH)
 	@cp $(SCRIPTS) $(BUILD_FOLDER)
 	cp -r ./lua_dash/assets $(BUILD_FOLDER)
 
 run:
-	@./$(BINARY_NAME)
+	@./$(BINARY_PATH)
 
 lldb:
-	@lldb ./$(BINARY_NAME)
+	@lldb ./$(BINARY_PATH)
 
 debug: CFLAGS += -g
 debug: clean rebuild lldb
@@ -81,6 +84,11 @@ doc:
 
 optimize: CFLAGS += -O2
 optimize: clean rebuild
+
+package: optimize
+	find $(LIBS_FOLDER) -name "*openal*" -exec cp '{}' $(BUILD_FOLDER)/ \;
+	tar --exclude=lua_dash -czvf $(BINARY_NAME).tar.gz $(BUILD_FOLDER)
+	mv $(BINARY_NAME).tar.gz $(BUILD_FOLDER)
 
 clean:
 	@ - rm -rf build

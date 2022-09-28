@@ -1,6 +1,8 @@
 # Lua Dash!
 
 A engine built in C, that you can create a game with lua scripts.  mainly to learn C, and lua.  The goal is to build a similar to monogamedash that I did in c# and c++
+![Picture didn't load idiot](https://github.com/kjblanchard/lua_c_dash/blob/master/img/game.gif?raw=true)
+
 
 - Using minimal IDE, 100% vim and lldb for debugging.
 - Tracking the project in github projects
