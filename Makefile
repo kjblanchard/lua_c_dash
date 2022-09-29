@@ -71,7 +71,7 @@ full: $(OBJ_FILES)
 	cp -r ./lua_dash/assets $(BUILD_FOLDER)
 
 run:
-	@./$(BINARY_PATH)
+	@cd ./$(BUILD_FOLDER) && ./$(BINARY_NAME)
 
 lldb:
 	@lldb ./$(BINARY_PATH)

@@ -61,8 +61,9 @@ static void ProcessInput()
 
 
 
-int main()
+int main(int argc, char **argv)
 {
+    printf("The thing I need is %s", argv[0]);
     World* world = CreateWorld();
     assert(world);
     //Uint64 previous = SDL_GetTicks64();

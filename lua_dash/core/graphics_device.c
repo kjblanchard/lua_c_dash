@@ -17,7 +17,7 @@
 static void load_graphics_config(lua_State* state, GraphicsDevice* graphics)
 {
     //First we load the file chunk with load file, then we use a protectedcall to actually run it.  We print an error if it doesn't work.
-    if(luaL_loadfile(state, "./build/config.lua") || lua_pcall(state, 0, 0, 0))
+    if(luaL_loadfile(state, "./config.lua") || lua_pcall(state, 0, 0, 0))
         printf("Error, cannot run config file");
 
     lua_getglobal(state, "Graphics");

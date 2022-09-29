@@ -75,7 +75,7 @@ static void LoadSoundConfig(lua_State* state);
 /**
  * @brief The prefix that we should add to the config file so that we look in the right location.
  */
-static const char* sfx_prefix = "build/assets/";
+static const char* sfx_prefix = "assets/";
 /**
  * @brief Loads the sound table from the already loaded config file, and then loads the Bgm and sfx from it.
  *
