@@ -26,10 +26,29 @@
 #endif
 struct nk_colorf bg;
 
+static FILE* open_debug_file;
 
+int InitializeDebugLogFile()
+{
+    open_debug_file = fopen("./game.log", "a");
+    if(open_debug_file)
+        return 1;
+    LogError("Could not open file for logging!");
+    return 0;
+
+}
 void Log(LogLevel level, const char* thing_to_write)
 {
-    printf("%s\n",thing_to_write);
+    if(level == Sg_Debug_Error && open_debug_file)
+    {
+        fprintf(open_debug_file, "%s\n",thing_to_write);
+        fprintf(stderr, "%s\n",thing_to_write);
+    }
+    else
+    {
+        printf("%s\n",thing_to_write);
+
+    }
 }
 void LogWarn(const char *fmt, ...)
 {

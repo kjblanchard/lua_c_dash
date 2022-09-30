@@ -32,6 +32,18 @@ typedef struct DebugWindow
 
 DebugWindow* debug_window;
 /**
+ * @brief Opens and/or creates a file for debug logging.
+ *
+ * @return 1 if successful, 0 if failed.
+ */
+int InitializeDebugLogFile();
+/**
+ * @brief Closes the open file for logging.
+ *
+ * @return 
+ */
+int CloseDebugLogFile();
+/**
  * @brief The internal logging function that the others will end up calling.  Probably don't call it manually
  *
  * @param level The log level to log this as.

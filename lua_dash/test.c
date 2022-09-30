@@ -65,6 +65,8 @@ int main(int argc, char **argv)
 {
     printf("The thing I need is %s", argv[0]);
     World* world = CreateWorld();
+    int debug_log_init = InitializeDebugLogFile();
+    LogError("The log init result is %d", debug_log_init);
     assert(world);
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
