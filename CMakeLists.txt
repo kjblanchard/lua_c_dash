@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 
+#Build universal if we are on our m1 mac, also requires using xcode as the build enbine.
 if (UNIX AND APPLE)
-    #set(CMAKE_BUILD_TYPE Xcode)
-    message(STATUS "Setting arches")
     set(CMAKE_OSX_ARCHITECTURES arm64;x86_64)
 endif(MACOSX)
 
@@ -12,13 +11,7 @@ project(sdl_dash
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 include(CPack)
-#link_directories(/usr/local/lib)
-
-
-
-
 
 #Add all of our source files and headers to this library.
 file(GLOB FILES lua_dash/**/*.c)
@@ -32,12 +25,9 @@ add_executable(supergoon_dash
                 # MACOSX_BUNDLE
                 ${FILES})
 set_property(TARGET supergoon_dash PROPERTY C_STANDARD 99)
-
-
 find_package(PkgConfig)
 # Generate our EXPORT and NO_EXPORT macros in sgengine_exported.h, this is for automatically generating windows declspecs
 #generate_export_header(supergoon_engine EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/exports/supergoon_engine_export.h)
-
 #Search and link to all static libraries, and build them if needed.
 if(UNIX)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -86,56 +76,30 @@ if(UNIX)
         set(LUA_LIBRARIES ${LIB_LUA})
     endif(NOT Lua_LIB)
 
-    #We need to find the openal that we built.
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
-    find_library(LIB_OPENAL NAMES libopenal.dylib libopenal openal HINTS /usr/local/lib
-        NO_CMAKE_PATH
-        NO_CMAKE_SYSTEM_PATH
-        NO_CMAKE_ENVIRONMENT_PATH)
-    if(NOT LIB_OPENAL)
-        message(STATUS "Need to check to see if we have built it with cmake")
-        find_package(OpenAL)
-        if(OpenAL_FOUND)
-            message(STATUS "OPENAL found")
-        else()
-            message(STATUS "DID NOT FOUND OPENAL, should build and install.")
-        endif(OPENAL_FOUND)
-    else()
-        set(OPENAL_LIBRARY ${LIB_OPENAL})
-    endif(NOT LIB_OPENAL)
 endif(UNIX)
 
 
 
 #Debug, print aout all variables.
+#[[
 get_cmake_property(_variableNames VARIABLES)
 list (SORT _variableNames)
 foreach (_variableName ${_variableNames})
     message(STATUS "${_variableName}=${${_variableName}}")
 endforeach()
+]]
 
 target_link_libraries(supergoon_dash
     PUBLIC
-    PRIVATE ${SDL2_STATIC_LIBRARIES} ${OGG_LIBRARIES} ${OPENAL_LIBRARY} ${LUA_LIBRARIES} ${LIB_VORBISFILE} ${LIB_VORBIS}
+    PRIVATE ${SDL2_STATIC_LIBRARIES} ${OGG_LIBRARIES} ${LUA_LIBRARIES} ${LIB_VORBISFILE} ${LIB_VORBIS}
     INTERFACE )
 
-message(STATUS "Copying the dynamic libraries to the binary folder, since the license for openal sucks.")
-file(GLOB OPENALFILES /usr/local/lib/*openal*)
-foreach( file_i ${OPENALFILES})
-add_custom_command(
-    TARGET supergoon_dash
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E copy ${file_i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
-    )
-endforeach( file_i )
-
 target_include_directories(supergoon_dash
-        PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/"
-        "${CMAKE_BINARY_DIR}/exports/"
-        ${GAME_INCLUDE_DIRS}
-        )
+    PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/"
+    "${CMAKE_BINARY_DIR}/exports/"
+    ${GAME_INCLUDE_DIRS}
+    )
 
 # Put win32 assets indo the Debug place, cause MSVC sucks
 if(WIN32)
@@ -144,18 +108,18 @@ else()
     set(ASSET_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
-# Copy folders into the built folder.
+# Copy folders into the built folder, for assets, scripts, etc for easy distribution.
 set(COPY_DIRS config scripts assets)
 message(STATUS "The copy dirs are "${COPY_DIRS})
 foreach( file_i ${COPY_DIRS})
     add_custom_command(
-            TARGET supergoon_dash POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-                    ${CMAKE_CURRENT_SOURCE_DIR}/lua_dash/${file_i}
-                    ${ASSET_OUTPUT_DIR}/${file_i}
-            )
+        TARGET supergoon_dash POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua_dash/${file_i}
+        ${ASSET_OUTPUT_DIR}/${file_i}
+        )
 endforeach( file_i )
-
+#Set compiler flags based on system.
 if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
     message(STATUS "Setting G++ flags")
     target_compile_options(supergoon_dash PRIVATE -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-newline-eof -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -Wno-constant-conversion)
@@ -170,11 +134,8 @@ elseif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
     target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "AppleClang")
     message(STATUS "Setting Apple Clang Flags")
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -pedantic -DDEBUG_BUILD_ENABLED)
+    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
 else()
     message(STATUS ${CMAKE_C_COMPILER_ID})
     target_compile_options(supergoon_dash PUBLIC /EHsc /W2 /c)
 endif()
-# Set relative link for this lib.
-#set_target_properties(supergoon_dash
-#    PROPERTIES LINK_FLAGS "-Wl,-rpath,../lib")

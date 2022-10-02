@@ -19,7 +19,7 @@ All of the licenses that I'm using will be listed here.
 ### Libraries
 - [SDL2](https://www.libsdl.org) - ZLIB
 - [Lua](https://www.lua.org/license.html) - MIT
-- [OpenAlSoft](https://openal-soft.org) - LGPLv2
+- [MojoAL](https://github.com/icculus/mojoAL) - ZLIB
 - [Ogg/Vorbis](https://xiph.org/vorbis/) - BSD
 
 ### Art
@@ -32,7 +32,7 @@ All of the licenses that I'm using will be listed here.
 ## Acknowledgements
 - **SDL2** - Used for low level handling of windows, timers, events, and input.
 - **Make** - Build system
-- **OpenAlSoft** - audio
+- **OpenAl** - audio (Using mojoal C wrapper on openal 1.1)
 - **Tiled** - Used for creating the maps and outputting data for it
 - **Ogg/Vorbis** - Used for audio decoding
 - **Lua** - Scripting / Configuration

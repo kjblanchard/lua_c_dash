@@ -1,7 +1,6 @@
 #pragma once
-#include <AL/al.h>
-#include <AL/alext.h>
 #include <vorbis/vorbisfile.h>
+#include "al.h"
 
 typedef struct Sg_Loaded_Sfx{
     ALsizei size;

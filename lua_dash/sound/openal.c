@@ -4,7 +4,7 @@
 #include <ogg/os_types.h>
 #include <vorbis/vorbisfile.h>
 #include <vorbis/codec.h>
-#include <AL/al.h>
+#include "al.h"
 #include "alhelpers.h"
 #include "openal.h"
 #include "../core/debug.h"
@@ -237,13 +237,22 @@ static StreamPlayer* NewPlayer()
     player = calloc(1, sizeof(*player));
     assert(player != NULL);
     alGenBuffers(BGM_NUM_BUFFERS, player->buffers);
-    assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
+    ALenum result;
+    result = alGetError();
+    assert(result == AL_NO_ERROR && "Could not create buffers");
     alGenSources(1, &player->source);
-    assert(alGetError() == AL_NO_ERROR && "Could not create source");
-    alSource3i(player->source, AL_POSITION, 0, 0, -1);
+    result = alGetError();
+    assert(result == AL_NO_ERROR && "Could not create source");
+    alSource3f(player->source, AL_POSITION, 0, 0, 0);
+    result = alGetError();
+    LogError("%d is the result", result);
+    assert(result == AL_NO_ERROR && "Could not set source pos");
     alSourcei(player->source, AL_SOURCE_RELATIVE, AL_TRUE);
+    result = alGetError();
+    assert(result == AL_NO_ERROR && "Could not set source relative");
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
-    assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
+    result = alGetError();
+    assert(result == AL_NO_ERROR && "Could not set source rolloff");
     //TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
     size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
     player->membuf = malloc(data_read_size);
@@ -261,7 +270,7 @@ static SfxPlayer* NewSfxPlayer()
     alGenSources(MAX_SFX_SOUNDS, sfx_player->sources);
     assert(alGetError() == AL_NO_ERROR && "Could not create source");
     for (size_t i = 0; i < 10; ++i) {
-        alSource3i(sfx_player->sources[i], AL_POSITION, 0, 0, -1);
+        alSource3f(sfx_player->sources[i], AL_POSITION, 0, 0, -1);
         alSourcei(sfx_player->sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
         alSourcei(sfx_player->sources[i], AL_ROLLOFF_FACTOR, 0);
         assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
