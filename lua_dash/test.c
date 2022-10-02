@@ -70,8 +70,7 @@ int main(int argc, char **argv)
     assert(world);
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
-    int result = InitDebugWindow();
-    assert(result);
+    InitDebugWindow();
     SDL_RaiseWindow(GameWorld->graphics->game_window);
     ToggleDebugWindow(0);
     InitializeSound();
