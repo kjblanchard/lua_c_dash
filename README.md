@@ -1,6 +1,9 @@
 # Lua Dash!
 
 A engine built in C, that you can create a game with lua scripts.  mainly to learn C, and lua.  The goal is to build a similar to monogamedash that I did in c# and c++
+- Currently it's just a music player, using an openal implementation to lop at specific points, you can use ~ to open the debug window and play different songs.
+- Compiles on Macos(universal) and linux
+
 ![Picture didn't load idiot](https://github.com/kjblanchard/lua_c_dash/blob/master/img/game.gif?raw=true)
 
 
