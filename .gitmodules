@@ -1,0 +1,9 @@
+[submodule "external/SDL"]
+	path = external/SDL
+	url = git@github.com:libsdl-org/SDL.git
+[submodule "external/vorbis"]
+	path = external/vorbis
+	url = git@github.com:xiph/vorbis.git
+[submodule "external/ogg"]
+	path = external/ogg
+	url = git@github.com:xiph/ogg.git
