@@ -39,6 +39,10 @@ All of the licenses that I'm using will be listed here.
 - **[Audacity](https://www.audacityteam.org)** - Music edits
 - **[Doxygen](https://doxygen.nl/index.html)** - Generating documentation
 
+## Building
+- All dependencies are in the external folder, and if you need any of them, pull the submodule and build/install them with 
+- - git submodule update --init --recursive
+
 ## Authors
 
 - [@Kevin Blanchard](https://www.github.com/kjblanchard)

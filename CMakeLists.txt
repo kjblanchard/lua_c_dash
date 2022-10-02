@@ -32,7 +32,10 @@ find_package(PkgConfig)
 if(UNIX)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     find_package(SDL2
-        PATH_SUFFIXES .a)
+    2.24.0
+    NAMES SDL2 sdl2
+        PATH_SUFFIXES .a
+        REQUIRED)
     if(SDL2_FOUND)
         message(STATUS "FOUND SDL2")
     else()
@@ -41,21 +44,24 @@ if(UNIX)
 
     #Check for vorbis and the vorbisfile component.
     find_package(VORBIS
+        NAMES vorbis Vorbis
         PATH_SUFFIXES .a
         COMPONENTS REQUIRED VORBISFILE VORBIS VORBISENC
         REQUIRED)
     if(VORBIS_FOUND)
         message(STATUS "FOUND Vorbis")
-        find_library(LIB_VORBIS 
+        find_library(LIB_VORBIS
             libvorbis vorbis vorbis.a HINTS /usr/local/lib)
-        find_library(LIB_VORBISFILE 
+        find_library(LIB_VORBISFILE
             libvorbisfile vorbisfile vorbisfile.a HINTS /usr/local/lib)
     else()
         message(STATUS "DID NOT FOUND VORBIS, should build and install.")
     endif(VORBIS_FOUND REQUIRED)
-        message(STATUS "DID NOT FOUND VORBIS, should build and install.")
 
-    find_package(OGG)
+    find_package(OGG
+    NAMES ogg Ogg
+    PATH_SUFFIXES .a
+    REQUIRED)
     if(OGG_FOUND)
         message(STATUS "FOUND OGG")
     else()
@@ -63,7 +69,8 @@ if(UNIX)
     endif(OGG_FOUND)
     #Find lua static (non homebrew)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    find_library(LIB_LUA NAMES liblua_static lua_static HINTS /usr/local/lib)
+    find_library(LIB_LUA NAMES liblua_static lua_static HINTS /usr/local/lib
+    REQUIRED)
     if(NOT LIB_LUA)
         message(STATUS "DID NOT FOUND LUA static library with find_library, should check if built differently.")
         find_package(Lua)
@@ -81,17 +88,15 @@ endif(UNIX)
 
 
 #Debug, print aout all variables.
-#[[
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-]]
+# get_cmake_property(_variableNames VARIABLES)
+# list (SORT _variableNames)
+# foreach (_variableName ${_variableNames})
+#     message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()
 
 target_link_libraries(supergoon_dash
     PUBLIC
-    PRIVATE ${SDL2_STATIC_LIBRARIES} ${OGG_LIBRARIES} ${LUA_LIBRARIES} ${LIB_VORBISFILE} ${LIB_VORBIS}
+    PRIVATE ${SDL2_STATIC_LIBRARIES}  ${LUA_LIBRARIES} ${LIB_VORBISFILE} ${LIB_VORBIS} ${OGG_LIBRARIES}
     INTERFACE )
 
 target_include_directories(supergoon_dash
@@ -131,7 +136,8 @@ elseif(${CMAKE_C_COMPILER_ID} STREQUAL "MSVC")
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
     message(STATUS "Setting Clang flags")
     # Activate all clang warnings except those that don't really affect much
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
+    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -pedantic -DDEBUG_BUILD_ENABLED)
+    target_link_options(supergoon_dash PUBLIC -lm)
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "AppleClang")
     message(STATUS "Setting Apple Clang Flags")
     target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
