@@ -8,8 +8,8 @@ extern "C" {
 #ifndef ALC_API
  #if defined(AL_LIBTYPE_STATIC)
   #define ALC_API
- #elif defined(_WIN32)
-  #define ALC_API __declspec(dllimport)
+//  #elif defined(_WIN32)
+//   #define ALC_API __declspec(dllimport)
  #else
   #define ALC_API extern
  #endif

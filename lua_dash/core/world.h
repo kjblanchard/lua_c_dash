@@ -24,7 +24,7 @@ typedef struct World{
 /**
  * @brief Pointer to the Gameworld.
  */
-World* GameWorld;
+extern World* GameWorld;
 /**
  * @brief Creates the gameworld, and initializes the global gameworkd pointer.
  *

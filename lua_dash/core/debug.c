@@ -28,6 +28,8 @@ struct nk_colorf bg;
 
 static FILE* open_debug_file;
 
+DebugWindow* debug_window = NULL;
+
 int InitializeDebugLogFile()
 {
     open_debug_file = fopen("./game.log", "a");

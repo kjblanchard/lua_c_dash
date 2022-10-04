@@ -3,6 +3,8 @@
 #include "world.h"
 #include "graphics_device.h"
 
+World* GameWorld = NULL;
+
 World* CreateWorld()
 {
     if(GameWorld)

@@ -11,6 +11,7 @@ project(sdl_dash
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /c/cmake)
 include(CPack)
 
 #Add all of our source files and headers to this library.
@@ -29,70 +30,70 @@ find_package(PkgConfig)
 # Generate our EXPORT and NO_EXPORT macros in sgengine_exported.h, this is for automatically generating windows declspecs
 #generate_export_header(supergoon_engine EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/exports/supergoon_engine_export.h)
 #Search and link to all static libraries, and build them if needed.
-if(UNIX)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    find_package(SDL2
-    2.24.0
-    NAMES SDL2 sdl2
-        PATH_SUFFIXES .a
-        REQUIRED)
-    if(SDL2_FOUND)
-        message(STATUS "FOUND SDL2")
-    else()
-        message(STATUS "DID NOT FOUND SDL2, should build and install.")
-    endif(SDL2_FOUND)
 
-    #Check for vorbis and the vorbisfile component.
-    find_package(VORBIS
-        NAMES vorbis Vorbis
-        PATH_SUFFIXES .a
-        COMPONENTS REQUIRED VORBISFILE VORBIS VORBISENC
-        REQUIRED)
-    if(VORBIS_FOUND)
-        message(STATUS "FOUND Vorbis")
-        find_library(LIB_VORBIS
-            libvorbis vorbis vorbis.a HINTS /usr/local/lib)
-        find_library(LIB_VORBISFILE
-            libvorbisfile vorbisfile vorbisfile.a HINTS /usr/local/lib)
-    else()
-        message(STATUS "DID NOT FOUND VORBIS, should build and install.")
-    endif(VORBIS_FOUND REQUIRED)
-
-    find_package(OGG
-    NAMES ogg Ogg
-    PATH_SUFFIXES .a
+find_package(SDL2
+2.24.0
+NAMES SDL2 sdl2
+    PATH_SUFFIXES .a .dll
     REQUIRED)
-    if(OGG_FOUND)
-        message(STATUS "FOUND OGG")
-    else()
-        message(STATUS "DID NOT FOUND OGG, should build and install.")
-    endif(OGG_FOUND)
-    #Find lua static (non homebrew)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    find_library(LIB_LUA NAMES liblua_static lua_static HINTS /usr/local/lib
-    REQUIRED)
-    if(NOT LIB_LUA)
-        message(STATUS "DID NOT FOUND LUA static library with find_library, should check if built differently.")
-        find_package(Lua)
-        if(LUA_FOUND)
-            message(STATUS "FOUND LUA")
-        else()
-            message(STATUS "DID NOT FOUND LUA, should build and install.")
-        endif(LUA_FOUND)
-    else()
-        set(LUA_LIBRARIES ${LIB_LUA})
-    endif(NOT Lua_LIB)
+if(SDL2_FOUND)
+    message(STATUS "FOUND SDL2")
+else()
+    message(STATUS "DID NOT FOUND SDL2, should build and install.")
+endif(SDL2_FOUND)
 
-endif(UNIX)
+#Check for vorbis and the vorbisfile component.
+find_package(VORBIS
+    NAMES vorbis Vorbis
+    PATH_SUFFIXES .a .dll
+    COMPONENTS REQUIRED VORBISFILE VORBIS VORBISENC
+    REQUIRED)
+
+if(VORBIS_FOUND)
+    message(STATUS "FOUND Vorbis")
+    find_library(LIB_VORBIS REQUIRED
+    NAMES libvorbis vorbis vorbis.a vorbis.dll libvorbis.a HINTS /usr/local/lib /c/cmake/lib)
+    find_library(LIB_VORBISFILE REQUIRED
+    NAMES  libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll HINTS /usr/local/lib)
+else()
+    message(STATUS "DID NOT FOUND VORBIS, should build and install.")
+endif(VORBIS_FOUND REQUIRED)
+
+find_package(OGG
+NAMES ogg Ogg
+PATH_SUFFIXES .a .dll
+REQUIRED)
+if(OGG_FOUND)
+    message(STATUS "FOUND OGG")
+else()
+    message(STATUS "DID NOT FOUND OGG, should build and install.")
+endif(OGG_FOUND)
+#Find lua static (non homebrew)
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+find_library(LIB_LUA NAMES liblua_static lua_static HINTS /usr/local/lib
+REQUIRED)
+if(NOT LIB_LUA)
+    message(STATUS "DID NOT FOUND LUA static library with find_library, should check if built differently.")
+    find_package(Lua)
+    if(LUA_FOUND)
+        message(STATUS "FOUND LUA")
+    else()
+        message(STATUS "DID NOT FOUND LUA, should build and install.")
+    endif(LUA_FOUND)
+else()
+    set(LUA_LIBRARIES ${LIB_LUA})
+endif(NOT Lua_LIB)
+
+
 
 
 
 #Debug, print aout all variables.
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
 
 target_link_libraries(supergoon_dash
     PUBLIC
@@ -127,7 +128,7 @@ endforeach( file_i )
 #Set compiler flags based on system.
 if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
     message(STATUS "Setting G++ flags")
-    target_compile_options(supergoon_dash PRIVATE -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-newline-eof -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -Wno-constant-conversion)
+    target_compile_options(supergoon_dash PRIVATE -std=c99)
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "MSVC")
     message(STATUS "Setting MSVC flags")
     target_compile_options(supergoon_dash PRIVATE /EHsc /W2 /c)

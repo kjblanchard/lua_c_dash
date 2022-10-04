@@ -30,7 +30,7 @@ typedef struct DebugWindow
 
 } DebugWindow;
 
-DebugWindow* debug_window;
+extern DebugWindow* debug_window;
 /**
  * @brief Opens and/or creates a file for debug logging.
  *
