@@ -47,12 +47,12 @@ find_package(SDL2
 find_library(LIB_VORBIS
     REQUIRED
     PATH_SUFFIXES .a
-    NAMES libvorbis vorbis vorbis.a vorbis.dll libvorbis.a 
+    NAMES libvorbis vorbis vorbis.a vorbis.dll libvorbis.a
     HINTS /usr/local/lib /c/cmake/lib)
 
 find_library(LIB_VORBISFILE
     REQUIRED
-    NAMES  libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll 
+    NAMES  libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll
     HINTS /usr/local/lib)
 
 find_package(
@@ -62,7 +62,7 @@ find_package(
     REQUIRED)
 
 #Find lua static (non homebrew)
-find_library(LIB_LUA 
+find_library(LIB_LUA
     NAMES liblua_static lua_static  liblua_static.a lua_static.a
     HINTS /usr/local/lib
     REQUIRED)
@@ -99,7 +99,7 @@ endforeach( file_i )
 
 if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
     message(STATUS "Setting Clang flags")
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic)
+    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
     target_link_options(supergoon_dash PUBLIC -lm)
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "AppleClang")
     message(STATUS "Setting Apple Clang Flags")
