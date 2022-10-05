@@ -36,6 +36,7 @@ int InitializeSdl()
 void DestroyWorld(World* world)
 {
     lua_close(world->global_lua_state_ptr);
+    world->global_lua_state_ptr = NULL;
     free(world);
     GameWorld = NULL;
 }

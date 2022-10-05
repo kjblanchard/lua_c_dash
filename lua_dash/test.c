@@ -95,6 +95,7 @@ int main(int argc, char **argv)
     SDL_DestroyWindow(world->graphics->game_window);
     CloseDebugLogFile();
     CloseSound();
+    DestroyWorld(world);
     SDL_Quit();
     return 0;
 }
