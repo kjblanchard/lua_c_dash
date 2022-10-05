@@ -36,14 +36,14 @@ static void ProcessInput()
                 {
                     debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                     ToggleDebugWindow(debug_window_enabled);
-
                 }
             }
             else
                 ProcessDebugWindowInput(&sdlEvent);
             continue;
         }
-        if (sdlEvent.type == SDL_KEYDOWN)
+
+        else if (sdlEvent.type == SDL_KEYDOWN)
         {
             if (sdlEvent.key.keysym.sym == SDLK_ESCAPE)
             {
@@ -55,9 +55,11 @@ static void ProcessInput()
                 ToggleDebugWindow(debug_window_enabled);
             }
         }
-        else if (sdlEvent.type == SDL_QUIT)
-            GameWorld->is_running = 0;
+        else if (sdlEvent.type == SDL_WINDOWEVENT)
+            if(sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+                GameWorld->is_running = 0;
     }
+
     if(debug_window_created)
         ProcessDebugWindowInputEnd();
 }

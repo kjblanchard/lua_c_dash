@@ -50,8 +50,8 @@ GraphicsDevice* CreateGraphicsDevice()
     load_graphics_config(GameWorld->global_lua_state_ptr, graphics);
     graphics->game_window = SDL_CreateWindow(
             "CLuaDash!",
-            0,
-            0,
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
             graphics->window_size.x,
             graphics->window_size.y,
             0);
@@ -69,13 +69,15 @@ GraphicsDevice* CreateGraphicsDevice()
 GraphicsDevice* CreateDebugGraphicsDevice()
 {
     GraphicsDevice* graphics = (GraphicsDevice*) malloc(sizeof(GraphicsDevice));
+    int world_x, world_y;
+    SDL_GetWindowPosition(GameWorld->graphics->game_window, &world_x, &world_y);
     graphics->game_window = SDL_CreateWindow(
             "Debug_Window",
-            GameWorld->graphics->window_size.x,
-            0,
+            world_x + GameWorld->graphics->window_size.x,
+            SDL_WINDOWPOS_CENTERED,
             640,
             480,
-            0);
+            SDL_WINDOW_HIDDEN);
     if (!graphics->game_window)
         printf("Error making window, %s",SDL_GetError());
     graphics->game_renderer = SDL_CreateRenderer(graphics->game_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
