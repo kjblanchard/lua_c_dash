@@ -245,7 +245,6 @@ static StreamPlayer* NewPlayer()
     assert(result == AL_NO_ERROR && "Could not create source");
     alSource3f(player->source, AL_POSITION, 0, 0, 0);
     result = alGetError();
-    LogError("%d is the result", result);
     assert(result == AL_NO_ERROR && "Could not set source pos");
     alSourcei(player->source, AL_SOURCE_RELATIVE, AL_TRUE);
     result = alGetError();

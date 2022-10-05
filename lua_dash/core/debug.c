@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 #include <SDL2/SDL_events.h>
 #include "SDL2/SDL_video.h"
 #include "debug.h"
@@ -26,7 +27,15 @@
 #endif
 struct nk_colorf bg;
 
-static FILE* open_debug_file;
+/**
+ * @brief The max amount of characters to write for each debug message.
+ */
+#define MAX_LOG_SIZE 100
+
+/**
+ * @brief The file that we can write to when errors occur.
+ */
+static FILE* open_debug_file = NULL;
 
 DebugWindow* debug_window = NULL;
 
@@ -39,23 +48,38 @@ int InitializeDebugLogFile()
     return 0;
 
 }
+
+int CloseDebugLogFile()
+{
+    if(!open_debug_file)
+        return 1;
+    int result = fclose(open_debug_file);
+    if(result)
+        LogError("Couldn't close logging file.");
+    return !result;
+
+}
 void Log(LogLevel level, const char* thing_to_write)
 {
     if(level == Sg_Debug_Error && open_debug_file)
     {
-        fprintf(open_debug_file, "%s\n",thing_to_write);
-        fprintf(stderr, "%s\n",thing_to_write);
+        time_t current_time;
+        time(&current_time);
+        struct tm *gm_time = gmtime(&current_time); 
+        char buf[30];
+        strftime(buf, sizeof(buf), "%m-%d-%H:%M-%S", gm_time);
+        fprintf(open_debug_file, "%s: %s\n",buf, thing_to_write);
+        fprintf(stderr, "%s: %s\n",buf,thing_to_write);
     }
     else
     {
         printf("%s\n",thing_to_write);
-
     }
 }
 void LogWarn(const char *fmt, ...)
 {
     va_list args;
-    char buf[100];
+    char buf[MAX_LOG_SIZE];
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
@@ -64,7 +88,7 @@ void LogWarn(const char *fmt, ...)
 void LogError(const char *fmt, ...)
 {
     va_list args;
-    char buf[100];
+    char buf[MAX_LOG_SIZE];
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);

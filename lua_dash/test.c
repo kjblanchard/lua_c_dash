@@ -66,11 +66,9 @@ static void ProcessInput()
 
 int main(int argc, char **argv)
 {
-    printf("The thing I need is %s", argv[0]);
     World* world = CreateWorld();
-    int debug_log_init = InitializeDebugLogFile();
-    LogError("The log init result is %d", debug_log_init);
     assert(world);
+    InitializeDebugLogFile();
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
     debug_window_created = InitDebugWindow();
@@ -95,6 +93,7 @@ int main(int argc, char **argv)
         ShutdownDebugWindow();
     SDL_DestroyRenderer(world->graphics->game_renderer);
     SDL_DestroyWindow(world->graphics->game_window);
+    CloseDebugLogFile();
     CloseSound();
     SDL_Quit();
     return 0;

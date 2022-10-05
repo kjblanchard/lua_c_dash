@@ -30,6 +30,9 @@ typedef struct DebugWindow
 
 } DebugWindow;
 
+/**
+ * @brief The global debug_window, that has a graphics device and context.
+ */
 extern DebugWindow* debug_window;
 /**
  * @brief Opens and/or creates a file for debug logging.
