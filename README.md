@@ -1,18 +1,15 @@
 # Lua Dash!
 
 A engine built in C, that you can create a game with lua scripts.  mainly to learn C, and lua.  The goal is to build a similar to monogamedash that I did in c# and c++
-- Currently it's just a music player, using an openal implementation to lop at specific points, you can use ~ to open the debug window and play different songs.
-- Compiles on Macos(universal) and linux
+- Currently it's just a music player, using an openal implementation to loop at specific points, you can use ~ to open the debug window and play different songs.
+- Currently going to run small releases on Macosx(universal), Linux, and Windows.  Once finished, will also compile on Emscripten, IOS, and Android.
 
 ![Picture didn't load idiot](https://github.com/kjblanchard/lua_c_dash/blob/master/img/game.gif?raw=true)
-
 
 - Using minimal IDE, 100% vim and lldb for debugging.
 - Tracking the project in github projects
 
 **[Doxygen Documentation](https://docs.supergoon.com)**
-
-Currently Compiling on  Mac (apple silicon/arm64), eventually I'll compile to others once the project gets big enough.
 
 
 ## License
@@ -34,9 +31,11 @@ All of the licenses that I'm using will be listed here.
 
 ## Acknowledgements
 - **SDL2** - Used for low level handling of windows, timers, events, and input.
-- **Make** - Build system
+- **Make** - Used to run simple commands, initially used as build system until Cross-platform
+- **CMake** - Build system, for cross-platform building.
 - **OpenAl** - audio (Using mojoal C wrapper on openal 1.1)
 - **Tiled** - Used for creating the maps and outputting data for it
+- **Aseprite** - Sprite modifications, animations, and exporting anims.
 - **Ogg/Vorbis** - Used for audio decoding
 - **Lua** - Scripting / Configuration
 - **[Audacity](https://www.audacityteam.org)** - Music edits
@@ -45,6 +44,7 @@ All of the licenses that I'm using will be listed here.
 ## Building
 - All dependencies are in the external folder, and if you need any of them, pull the submodule and build/install them with 
 - - git submodule update --init --recursive
+- Only tested with clang currently on macos/windows/linux.  Windows sets prefix to c/cmake, so make sure when you install your libs to put them there, or change the prefix path in cmake
 
 ## Authors
 

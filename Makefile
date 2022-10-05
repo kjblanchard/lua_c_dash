@@ -1,4 +1,4 @@
-.PHONY: configure build release clean rebuild run lldb debug doc
+.PHONY: config configure build release clean rebuild run lldb debug doc
 
 BUILD_FOLDER = build/bin
 BINARY_NAME = supergoon_dash
