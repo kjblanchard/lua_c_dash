@@ -91,10 +91,12 @@ int main(int argc, char **argv)
     } 
     if(debug_window_created)
         ShutdownDebugWindow();
+
     SDL_DestroyRenderer(world->graphics->game_renderer);
     SDL_DestroyWindow(world->graphics->game_window);
     CloseDebugLogFile();
     CloseSound();
+    DestroyGraphicsDevice(world->graphics);
     DestroyWorld(world);
     SDL_Quit();
     return 0;

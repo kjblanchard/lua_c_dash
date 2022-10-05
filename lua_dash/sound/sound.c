@@ -250,10 +250,15 @@ int UnloadSfx(int sfx_number)
     if (sfx_sounds[sfx_number]->loaded_sfx)
     {
         CloseSfxFileAl(sfx_sounds[sfx_number]->loaded_sfx);
-        free(sfx_sounds[sfx_number]->sfx_name);
-        free(sfx_sounds[sfx_number]);
     }
-    return (sfx_sounds[sfx_number]->loaded_sfx == NULL) ? 1 : 0;
+    if(sfx_sounds[sfx_number])
+    {
+        free(sfx_sounds[sfx_number]->sfx_name);
+        sfx_sounds[sfx_number]->sfx_name = NULL;
+        free(sfx_sounds[sfx_number]);
+        sfx_sounds[sfx_number] = NULL;
+    }
+    return (sfx_sounds[sfx_number] == NULL) ? 1 : 0;
 }
 
 void UpdateSound()
