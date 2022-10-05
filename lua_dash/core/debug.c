@@ -74,7 +74,7 @@ void LogError(const char *fmt, ...)
 int InitDebugWindow()
 {
 #ifndef DEBUG_BUILD_ENABLED
-    return 1;
+    return 0;
 #endif
 #ifdef DEBUG_BUILD_ENABLED
     if(debug_window)
@@ -109,6 +109,9 @@ void ProcessDebugWindowInputBegin()
 }
 void ToggleDebugWindow(int enabled)
 {
+#ifndef DEBUG_BUILD_ENABLED
+    return;
+#endif
     if(enabled)
         SDL_ShowWindow(debug_window->debug_graphics_device->game_window);
     else

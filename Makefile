@@ -1,4 +1,4 @@
-.PHONY: config configure build release clean rebuild run lldb debug doc
+.PHONY: config configure build release clean rebuild run lldb debug doc windows
 
 BUILD_FOLDER = build/bin
 BINARY_NAME = supergoon_dash
@@ -8,6 +8,9 @@ all: build
 
 configure:
 	@cmake . -B build -D CMAKE_BUILD_TYPE=Debug
+
+windows:
+	@cmake . -B build -DCMAKE_PREFIX_PATH=/c/cmake/ -G'MinGW Makefiles'
 
 release:
 	@cmake . -B build -G Xcode  && cmake --build build --config Release

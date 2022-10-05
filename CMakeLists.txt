@@ -99,7 +99,7 @@ endforeach( file_i )
 
 if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
     message(STATUS "Setting Clang flags")
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -pedantic -DDEBUG_BUILD_ENABLED)
+    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic)
     target_link_options(supergoon_dash PUBLIC -lm)
 elseif(${CMAKE_C_COMPILER_ID} STREQUAL "AppleClang")
     message(STATUS "Setting Apple Clang Flags")

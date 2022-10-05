@@ -14,14 +14,16 @@
 #include "sound/sound.h"
 
 static unsigned int debug_window_enabled = 0;
+static unsigned int debug_window_created = 0;
 
 static void ProcessInput()
 {
     SDL_Event sdlEvent;
-    ProcessDebugWindowInputBegin();
+    if(debug_window_created)
+        ProcessDebugWindowInputBegin();
     while (SDL_PollEvent(&sdlEvent) != 0)
     {
-        if(debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
+        if(debug_window_created && debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
         {
             if(sdlEvent.type == SDL_KEYDOWN && (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE || sdlEvent.key.keysym.sym == SDLK_ESCAPE))
             {
@@ -56,7 +58,8 @@ static void ProcessInput()
         else if (sdlEvent.type == SDL_QUIT)
             GameWorld->is_running = 0;
     }
-    ProcessDebugWindowInputEnd();
+    if(debug_window_created)
+        ProcessDebugWindowInputEnd();
 }
 
 
@@ -70,7 +73,7 @@ int main(int argc, char **argv)
     assert(world);
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
-    InitDebugWindow();
+    debug_window_created = InitDebugWindow();
     SDL_RaiseWindow(GameWorld->graphics->game_window);
     ToggleDebugWindow(0);
     InitializeSound();
@@ -82,13 +85,14 @@ int main(int argc, char **argv)
         //previous = current;
         ProcessInput();
         UpdateSound();
-        if(debug_window_enabled)
+        if(debug_window_created && debug_window_enabled)
             ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
         SDL_RenderClear(world->graphics->game_renderer);
         SDL_RenderPresent(world->graphics->game_renderer);
     } 
-    ShutdownDebugWindow();
+    if(debug_window_created)
+        ShutdownDebugWindow();
     SDL_DestroyRenderer(world->graphics->game_renderer);
     SDL_DestroyWindow(world->graphics->game_window);
     CloseSound();
