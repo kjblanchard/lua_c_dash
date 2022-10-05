@@ -508,6 +508,8 @@ struct ALCdevice_struct
     ALint frequency;
     ALCsizei framesize;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc11-extensions"
     union {
         struct {
             ALCcontext *contexts;
@@ -520,6 +522,7 @@ struct ALCdevice_struct
             RingBuffer ring;  /* only used if iscapture */
         } capture;
     };
+#pragma clang diagnostic pop
 };
 
 struct ALCcontext_struct
