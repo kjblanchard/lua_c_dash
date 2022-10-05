@@ -249,8 +249,9 @@ int UnloadSfx(int sfx_number)
 {
     if (sfx_sounds[sfx_number]->loaded_sfx)
     {
-        free(sfx_sounds[sfx_number]->loaded_sfx);
-        sfx_sounds[sfx_number]->loaded_sfx = NULL;
+        CloseSfxFileAl(sfx_sounds[sfx_number]->loaded_sfx);
+        free(sfx_sounds[sfx_number]->sfx_name);
+        free(sfx_sounds[sfx_number]);
     }
     return (sfx_sounds[sfx_number]->loaded_sfx == NULL) ? 1 : 0;
 }

@@ -493,6 +493,18 @@ static Sg_Loaded_Sfx* LoadSfxFile(SfxPlayer* player, const char *filename)
 
 }
 
+int CloseSfxFileAl(Sg_Loaded_Sfx* loaded_sfx)
+{
+    if(!loaded_sfx)
+        return 1;
+    free(loaded_sfx->sound_data);
+    loaded_sfx->sound_data = NULL;
+    free(loaded_sfx);
+    loaded_sfx = NULL;
+    return (loaded_sfx == NULL) ? 1 : 0;
+}
+
+
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 {
     if(QueueIsEmpty(player->free_buffers))
