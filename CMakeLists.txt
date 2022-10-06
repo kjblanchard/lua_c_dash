@@ -16,7 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 #Add in the windows cmake path to prefix, so that we can find things.
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /c/cmake)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 12.3)
-include(CPack)
 
 #Add all of our source files
 file(GLOB FILES lua_dash/**/*.c)
@@ -86,25 +85,9 @@ target_include_directories(supergoon_dash
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/"
     )
 
-# Copy folders into the built folder, for assets, scripts, etc for easy distribution.
-set(COPY_DIRS config scripts assets)
-foreach( file_i ${COPY_DIRS})
-    add_custom_command(
-        TARGET supergoon_dash POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/lua_dash/${file_i}
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${file_i}
-        )
-endforeach( file_i )
+install(DIRECTORY lua_dash/config lua_dash/scripts lua_dash/assets 
+    DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMPONENT assets)
 
-if(${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
-    message(STATUS "Setting Clang flags")
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
-    target_link_options(supergoon_dash PUBLIC -lm)
-elseif(${CMAKE_C_COMPILER_ID} STREQUAL "AppleClang")
-    message(STATUS "Setting Apple Clang Flags")
-    target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)
-else()
-    message(STATUS ${CMAKE_C_COMPILER_ID})
-    target_compile_options(supergoon_dash PUBLIC /EHsc /W2 /c)
-endif()
+
+target_compile_options(supergoon_dash PUBLIC -std=c99 -Wall -Werror -pedantic -DDEBUG_BUILD_ENABLED)

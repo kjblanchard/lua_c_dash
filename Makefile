@@ -21,7 +21,13 @@ build:
 clean:
 	@ - rm -rf build
 
-rebuild: clean configure build
+rebuild: clean configure build install
+
+install:
+	@cmake --install build
+
+package:
+	cd ./build && tar -czf game.tar.gz bin
 
 run:
 	@cd ./$(BUILD_FOLDER) && ./$(BINARY_NAME)
