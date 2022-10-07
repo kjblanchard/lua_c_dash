@@ -23,6 +23,7 @@
 #include "nuklear_sdl_renderer.h"
 //#define INCLUDE_OVERVIEW
 #ifdef INCLUDE_OVERVIEW
+#include <limits.h>
 #include "nuklear_overview.h"
 #endif
 struct nk_colorf bg;
@@ -236,7 +237,6 @@ void ProcessDebugWindowGraphics()
             nk_combo_end(debug_window->ctx);
         }
     }
-    nk_end(debug_window->ctx);
     SDL_SetRenderDrawColor(debug_window->debug_graphics_device->game_renderer, bg.r * 255, bg.g * 255, bg.b * 255, bg.a * 255);
     SDL_RenderClear(debug_window->debug_graphics_device->game_renderer);
     nk_sdl_render(NK_ANTI_ALIASING_ON);
