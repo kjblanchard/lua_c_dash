@@ -7,7 +7,7 @@
 #include "al.h"
 #include "alhelpers.h"
 #include "openal.h"
-#include "../core/debug.h"
+#include "../debug/debug.h"
 #include "../base/queue.h"
 #include "../base/vector.h"
 

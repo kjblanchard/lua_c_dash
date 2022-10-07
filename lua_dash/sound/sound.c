@@ -4,7 +4,7 @@
 #include <lauxlib.h>
 #include <string.h>
 #include "../core/world.h"
-#include "../core/debug.h"
+#include "../debug/debug.h"
 #include "alhelpers.h"
 #include "openal.h"
 

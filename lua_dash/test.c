@@ -9,7 +9,7 @@
 #include "SDL2/SDL_video.h"
 #include "base/point.h"
 #include "core/graphics_device.h"
-#include "core/debug.h"
+#include "debug/debug.h"
 #include "core/world.h"
 #include "sound/sound.h"
 

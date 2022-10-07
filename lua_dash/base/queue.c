@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "queue.h"
-#include "../core/debug.h"
+#include "../debug/debug.h"
 
 /**
  * @brief Moves all the data in the queue to the front, so that we can add more data

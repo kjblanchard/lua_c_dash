@@ -21,6 +21,7 @@ All of the licenses that I'm using will be listed here.
 - [Lua](https://www.lua.org/license.html) - MIT
 - [MojoAL](https://github.com/icculus/mojoAL) - ZLIB
 - [Ogg/Vorbis](https://xiph.org/vorbis/) - BSD
+- [Nuklear](https://github.com/vurtun/nuklear) - Public Domain
 
 ### Art
 - [Pixel art](https://pixelfrog-assets.itch.io/pixel-adventure-1) - Creative Commons License
@@ -40,6 +41,7 @@ All of the licenses that I'm using will be listed here.
 - **Lua** - Scripting / Configuration
 - **[Audacity](https://www.audacityteam.org)** - Music edits
 - **[Doxygen](https://doxygen.nl/index.html)** - Generating documentation
+- **[Nuklear](https://github.com/vurtun/nuklear)** - Debug UI
 
 ## Building
 - All dependencies are in the external folder, and if you need any of them, pull the submodule and build/install them with 

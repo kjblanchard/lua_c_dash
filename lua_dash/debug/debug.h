@@ -1,4 +1,3 @@
-#pragma once
 /**
  * @file debug.h
  * @brief Holds the debug window/renderer (Nuklear) and also has some simple logging functions that Should be used.
@@ -7,6 +6,7 @@
  * @date 2022-09-18
  */
 
+#pragma once
 struct GraphicsDevice;
 union SDL_Event;
 
@@ -19,10 +19,14 @@ typedef enum LogLevel
 {
     Sg_Debug_Default,
     Sg_Debug_Debug,
+    Sg_Debug_Info,
     Sg_Debug_Warn,
     Sg_Debug_Error,
 } LogLevel;
 
+/**
+ * @brief The debug window, and it's nuklear context
+ */
 typedef struct DebugWindow
 {
     struct GraphicsDevice* debug_graphics_device;
@@ -34,6 +38,10 @@ typedef struct DebugWindow
  * @brief The global debug_window, that has a graphics device and context.
  */
 extern DebugWindow* debug_window;
+/**
+ * @brief The current games logging level, this should be set inside of lua.
+ */
+extern LogLevel game_log_level ;
 /**
  * @brief Opens and/or creates a file for debug logging.
  *
@@ -47,12 +55,19 @@ int InitializeDebugLogFile();
  */
 int CloseDebugLogFile();
 /**
- * @brief The internal logging function that the others will end up calling.  Probably don't call it manually
+ * @brief Log a Debug log in a printf format
  *
- * @param level The log level to log this as.
- * @param data_to_write The data to write to the log.
+ * @param format The printf styped text
+ * @param ... The variables for the printf
  */
-void Log(LogLevel level, const char *data_to_write);
+void LogDebug(const char *format, ...);
+/**
+ * @brief Log a warning log in a printf format
+ *
+ * @param format The printf styped text
+ * @param ... The variables for the printf
+ */
+void LogInfo(const char *format, ...);
 /**
  * @brief Log a warning log in a printf format
  *

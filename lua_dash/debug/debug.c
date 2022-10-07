@@ -4,9 +4,9 @@
 #include <stdarg.h>
 #include <time.h>
 #include <SDL2/SDL_events.h>
-#include "SDL2/SDL_video.h"
+#include <SDL2/SDL_video.h>
 #include "debug.h"
-#include "graphics_device.h"
+#include "../core/graphics_device.h"
 #include "../sound/sound.h"
 
 #define NK_INCLUDE_FIXED_TYPES
@@ -19,25 +19,35 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
 #define NK_SDL_RENDERER_IMPLEMENTATION
+#include "nuklear.h"
+#include "nuklear_sdl_renderer.h"
 //#define INCLUDE_OVERVIEW
-#include "../external/nuklear.h"
-#include "../external/nuklear_sdl_renderer.h"
 #ifdef INCLUDE_OVERVIEW
-#include "../external/nuklear_overview.h"
+#include "nuklear_overview.h"
 #endif
 struct nk_colorf bg;
 
 /**
  * @brief The max amount of characters to write for each debug message.
  */
-#define MAX_LOG_SIZE 100
-
+#define MAX_LOG_SIZE 50
 /**
  * @brief The file that we can write to when errors occur.
  */
 static FILE* open_debug_file = NULL;
 
 DebugWindow* debug_window = NULL;
+
+/**
+ * @brief The internal logging function that the others will end up calling.  Probably don't call it manually
+ *
+ * @param level The log level to log this as.
+ * @param data_to_write The data to write to the log.
+ */
+static void Log(LogLevel level, const char *data_to_write);
+
+//TODO set this inside of config file after we get lua scripts working.
+LogLevel game_log_level = Sg_Debug_Info;
 
 int InitializeDebugLogFile()
 {
@@ -59,40 +69,67 @@ int CloseDebugLogFile()
     return !result;
 
 }
-void Log(LogLevel level, const char* thing_to_write)
+static void Log(LogLevel level, const char* thing_to_write)
 {
+    time_t current_time;
+    time(&current_time);
+    struct tm *gm_time = gmtime(&current_time); 
+    char buf[30];
+    strftime(buf, sizeof(buf), "%m-%d-%H:%M-%S", gm_time);
+    fprintf(stderr, "%s: %s\n",buf,thing_to_write);
     if(level == Sg_Debug_Error && open_debug_file)
     {
-        time_t current_time;
-        time(&current_time);
-        struct tm *gm_time = gmtime(&current_time); 
-        char buf[30];
-        strftime(buf, sizeof(buf), "%m-%d-%H:%M-%S", gm_time);
         fprintf(open_debug_file, "%s: %s\n",buf, thing_to_write);
-        fprintf(stderr, "%s: %s\n",buf,thing_to_write);
-    }
-    else
-    {
-        printf("%s\n",thing_to_write);
     }
 }
+
+static void LogSetup(LogLevel level, const char* fmt,  va_list args)
+{
+    char buf[MAX_LOG_SIZE];
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    Log(level, buf);
+}
+
+static int ShouldLog(LogLevel level)
+{
+    return game_log_level <= level;
+}
+
+void LogDebug(const char *fmt, ...)
+{
+    if(!ShouldLog(Sg_Debug_Warn))
+        return;
+    va_list args;
+    va_start(args, fmt);
+    LogSetup(Sg_Debug_Debug,fmt,args);
+}
+
+void LogInfo(const char *fmt, ...)
+{
+    if(!ShouldLog(Sg_Debug_Warn))
+        return;
+    va_list args;
+    va_start(args, fmt);
+    LogSetup(Sg_Debug_Info,fmt,args);
+}
+
 void LogWarn(const char *fmt, ...)
 {
+    if(!ShouldLog(Sg_Debug_Warn))
+        return;
     va_list args;
-    char buf[MAX_LOG_SIZE];
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    Log(Sg_Debug_Warn, buf);
+    LogSetup(Sg_Debug_Warn,fmt,args);
 }
+
 void LogError(const char *fmt, ...)
 {
+    if(!ShouldLog(Sg_Debug_Error))
+        return;
     va_list args;
-    char buf[MAX_LOG_SIZE];
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    Log(Sg_Debug_Error, buf);
+    LogSetup(Sg_Debug_Error,fmt,args);
 }
 
 int InitDebugWindow()
