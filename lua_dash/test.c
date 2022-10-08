@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
@@ -8,13 +9,20 @@
 #include "SDL2/SDL_keycode.h"
 #include "SDL2/SDL_video.h"
 #include "base/point.h"
+#include "base/vector2.h"
 #include "core/graphics_device.h"
 #include "debug/debug.h"
 #include "core/world.h"
+#include "input/input.h"
+#include "input/player_controller.h"
 #include "sound/sound.h"
+#include "objects/gameobject.h"
+#include "input/controller.h"
 
 static unsigned int debug_window_enabled = 0;
 static unsigned int debug_window_created = 0;
+
+static GameObject* main_character = NULL;
 
 static void ProcessInput()
 {
@@ -62,6 +70,7 @@ static void ProcessInput()
 
     if(debug_window_created)
         ProcessDebugWindowInputEnd();
+    UpdateInputKeyboardStates();
 }
 
 
@@ -74,8 +83,10 @@ int main(int argc, char **argv)
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
     debug_window_created = InitDebugWindow();
+    main_character = CreateGameObject(ZeroVector2());
     SDL_RaiseWindow(GameWorld->graphics->game_window);
     ToggleDebugWindow(0);
+    InitializeInput();
     InitializeSound();
     PlayBgm(0, 0.3f);
     while (world->is_running) 
@@ -87,8 +98,17 @@ int main(int argc, char **argv)
         UpdateSound();
         if(debug_window_created && debug_window_enabled)
             ProcessDebugWindowGraphics();
-        SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
+        SDL_SetRenderDrawColor(world->graphics->game_renderer, 0,0,0,0);
         SDL_RenderClear(world->graphics->game_renderer);
+
+        {//Draw character.
+            SDL_Rect char_rect;
+            SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
+            char_rect.x = main_character->location.x;
+            char_rect.y = main_character->location.y;
+            char_rect.w = char_rect.h = 32;
+            SDL_RenderDrawRect(world->graphics->game_renderer, &char_rect);
+        }
         SDL_RenderPresent(world->graphics->game_renderer);
     } 
     if(debug_window_created)
@@ -103,6 +123,4 @@ int main(int argc, char **argv)
     SDL_Quit();
     return 0;
 }
-
-
 

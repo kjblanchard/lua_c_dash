@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "nuklear_types.h"
 struct GraphicsDevice;
 union SDL_Event;
 
@@ -23,6 +24,8 @@ typedef enum LogLevel
     Sg_Debug_Warn,
     Sg_Debug_Error,
 } LogLevel;
+
+extern NuklearLabel* label_test;
 
 /**
  * @brief The debug window, and it's nuklear context

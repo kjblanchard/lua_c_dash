@@ -7,6 +7,7 @@
 #include "../debug/debug.h"
 #include "alhelpers.h"
 #include "openal.h"
+#include "sound.h"
 
 /**
  * @brief The max amount of sounds we should load.
@@ -90,10 +91,13 @@ int InitializeSound()
     return InitializeAl();
 }
 
+
+
 static void LoadSoundConfig(lua_State* state)
 {
-    lua_getglobal(state, "Sound");
-    if(!lua_istable(state, -1))
+    int lua_type = lua_getglobal(state, "Sound");
+    if(lua_type != LUA_TTABLE)
+    //if(!lua_istable(state, -1))
         LogError("This isn't a sound table");
     LoadBgmFromLua(state);
     LoadSfxFromLua(state);

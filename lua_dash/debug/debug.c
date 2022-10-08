@@ -28,6 +28,7 @@
 #endif
 struct nk_colorf bg;
 
+NuklearLabel* label_test = NULL;
 /**
  * @brief The max amount of characters to write for each debug message.
  */
@@ -138,13 +139,15 @@ int InitDebugWindow()
 #ifndef DEBUG_BUILD_ENABLED
     return 0;
 #endif
-#ifdef DEBUG_BUILD_ENABLED
     if(debug_window)
         return 1;
     debug_window = malloc(sizeof(GraphicsDevice));
     debug_window->debug_graphics_device = CreateDebugGraphicsDevice();
     if(!debug_window->debug_graphics_device)
+    {
+        LogError("Could not initialize debug window.");
         return 0;
+    }
     debug_window->ctx = nk_sdl_init(debug_window->debug_graphics_device->game_window, debug_window->debug_graphics_device->game_renderer);
     struct nk_font_atlas *atlas;
     struct nk_font_config config = nk_font_config(0);
@@ -161,7 +164,6 @@ int InitDebugWindow()
     nk_style_set_font(debug_window->ctx, &font->handle);
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
     return 1;
-#endif
 }
 
 void ProcessDebugWindowInputBegin()
@@ -195,8 +197,6 @@ void ProcessDebugWindowGraphics()
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
                 NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
     {
-        enum {EASY, HARD};
-        static int op = EASY;
         static int sound_num = 0;
         static float volume = 1;
 
@@ -214,14 +214,19 @@ void ProcessDebugWindowGraphics()
             PauseBgm();
         if (nk_button_label(debug_window->ctx, "UnpauseMusic"))
             UnPauseBgm();
+        if(label_test)
+        {
+            if(nk_button_label(debug_window->ctx, label_test->label_name))
+                label_test->func_to_run();
+        }
 
         nk_layout_row_dynamic(debug_window->ctx, 30, 2);
-        if (nk_option_label(debug_window->ctx, "easy", op == EASY)) op = EASY;
-        if (nk_option_label(debug_window->ctx, "hard", op == HARD)) op = HARD;
         nk_layout_row_dynamic(debug_window->ctx, 25, 1);
         nk_property_int(debug_window->ctx, "Sound Num:", 0, &sound_num, 100, 1, 1);
         nk_property_float(debug_window->ctx, "Sound Vol", 0, &volume, 1, 0.1, 0);
         nk_slider_float(debug_window->ctx, 0, &volume, 1, 0.01);
+
+
 
         nk_layout_row_dynamic(debug_window->ctx, 20, 1);
         nk_label(debug_window->ctx, "background:", NK_TEXT_LEFT);
@@ -236,6 +241,7 @@ void ProcessDebugWindowGraphics()
             bg.a = nk_propertyf(debug_window->ctx, "#A:", 0, bg.a, 1.0f, 0.01f,0.005f);
             nk_combo_end(debug_window->ctx);
         }
+        nk_end(debug_window->ctx);
     }
     SDL_SetRenderDrawColor(debug_window->debug_graphics_device->game_renderer, bg.r * 255, bg.g * 255, bg.b * 255, bg.a * 255);
     SDL_RenderClear(debug_window->debug_graphics_device->game_renderer);
