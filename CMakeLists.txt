@@ -18,8 +18,8 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /c/cmake)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 12.3)
 
 #Add all of our source files
-file(GLOB FILES lua_dash/**/*.c)
-file(GLOB MAIN lua_dash/*.c)
+file(GLOB FILES src/**/*.c)
+file(GLOB MAIN src/*.c)
 list(APPEND FILES ${MAIN})
 # Build a win32 bundle when building on win, and macos when building on ios,  Remove macosbundle as its easier to copy the files and debug #Remove win32 as couldn't build with sdl2
 add_executable(supergoon_dash
@@ -85,7 +85,7 @@ target_include_directories(supergoon_dash
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/"
     )
 
-install(DIRECTORY lua_dash/config lua_dash/scripts lua_dash/assets 
+install(DIRECTORY config scripts assets 
     DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     COMPONENT assets)
 
