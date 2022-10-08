@@ -7,7 +7,7 @@
  */
 #pragma once
 #include "../base/vector2.h"
-struct PlayerController;
+struct Controller;
 
 /**
  * @brief The base object of everything in the engine.
@@ -15,7 +15,7 @@ struct PlayerController;
 typedef struct GameObject
 {
     unsigned int id;
-    struct PlayerController* controller;
+    struct Controller* controller;
     Vector2 location;
 
 } GameObject;

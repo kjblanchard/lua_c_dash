@@ -18,9 +18,23 @@ static KeyboardKeybinds* GetDefaultKeyboardKeybinds()
     return bindings;
 }
 
-static int PlayerControllerButtonPressed(void* controller, ControllerButtons button)
+PlayerController* CreatePlayerController(unsigned char player_number)
 {
-    PlayerController* player_controller = (PlayerController*)controller;
+    PlayerController* player_controller = malloc(sizeof(*player_controller));
+    player_controller->keyboard_controls = GetDefaultKeyboardKeybinds();
+    player_controller->player_number = player_number;
+    return player_controller;
+}
+
+void DestroyPlayerController(PlayerController* controller)
+{
+    free(controller->keyboard_controls);
+    free(controller);
+    controller = NULL;
+}
+
+int IsPlayerControllerButtonPressed(PlayerController* player_controller, ControllerButtons button)
+{
     switch (button)
     {
         case ControllerButton_Up:
@@ -46,12 +60,10 @@ static int PlayerControllerButtonPressed(void* controller, ControllerButtons but
         default:
             return 0;
     }
-    return 0;
-
 }
-static int PlayerControllerButtonReleased(void* controller, ControllerButtons button)
+
+int IsPlayerControllerButtonReleased(PlayerController* player_controller, ControllerButtons button)
 {
-    PlayerController* player_controller = (PlayerController*)controller;
     switch (button)
     {
         case ControllerButton_Up:
@@ -77,12 +89,10 @@ static int PlayerControllerButtonReleased(void* controller, ControllerButtons bu
         default:
             return 0;
     }
-    return 0;
-
 }
-static int PlayerControllerButtonHeld(void* controller, ControllerButtons button)
+
+int IsPlayerControllerButtonHeld(PlayerController* player_controller, ControllerButtons button)
 {
-    PlayerController* player_controller = (PlayerController*)controller;
     switch (button)
     {
         case ControllerButton_Up:
@@ -108,39 +118,4 @@ static int PlayerControllerButtonHeld(void* controller, ControllerButtons button
         default:
             return 0;
     }
-    return 0;
-
-}
-
-PlayerController* CreatePlayerController(unsigned char player_number)
-{
-    PlayerController* player_controller = malloc(sizeof(*player_controller));
-    player_controller->keyboard_controls = GetDefaultKeyboardKeybinds();
-    player_controller->player_number = player_number;
-    player_controller->controller = malloc(sizeof(*player_controller->controller));
-    player_controller->controller->IsButtonPressed = PlayerControllerButtonPressed;
-    player_controller->controller->IsButtonReleased = PlayerControllerButtonReleased;
-    player_controller->controller->IsButtonHeld = PlayerControllerButtonHeld;
-    return player_controller;
-}
-
-void DestroyPlayerController(PlayerController* controller)
-{
-    free(controller->keyboard_controls);
-    free(controller->controller);
-    free(controller);
-    controller = NULL;
-}
-
-int IsPlayerControllerButtonPressed(PlayerController* controller, ControllerButtons button)
-{
-    return controller->controller->IsButtonPressed(controller, button);
-}
-int IsPlayerControllerButtonReleased(PlayerController* controller, ControllerButtons button)
-{
-    return controller->controller->IsButtonReleased(controller, button);
-}
-int IsPlayerControllerButtonHeld(PlayerController* controller, ControllerButtons button)
-{
-    return controller->controller->IsButtonHeld(controller, button);
 }

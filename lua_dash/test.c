@@ -13,6 +13,7 @@
 #include "core/graphics_device.h"
 #include "debug/debug.h"
 #include "core/world.h"
+#include "input/controller_buttons.h"
 #include "input/input.h"
 #include "input/player_controller.h"
 #include "sound/sound.h"
@@ -108,6 +109,8 @@ int main(int argc, char **argv)
             char_rect.y = main_character->location.y;
             char_rect.w = char_rect.h = 32;
             SDL_RenderDrawRect(world->graphics->game_renderer, &char_rect);
+            if(IsControllerButtonPressed(main_character->controller, ControllerButton_A))
+                LogWarn("Pressed");
         }
         SDL_RenderPresent(world->graphics->game_renderer);
     } 
