@@ -38,10 +38,6 @@ static void load_graphics_config(lua_State* state, GraphicsDevice* graphics)
     graphics->window_size.x = lua_tonumber(state, -1);
     //Pop the 4 values we had just added, and also the table.
     lua_pop(state,5);
-
-    printf("Window size X:%d Y:%d GameX: %d Y:%d",graphics->window_size.x, graphics->window_size.y, graphics->world_size.x, graphics->world_size.y);
-
-
 }
 
 GraphicsDevice* CreateGraphicsDevice()

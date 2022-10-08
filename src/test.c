@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
     debug_window_created = InitDebugWindow();
-    main_character = CreateGameObject(ZeroVector2());
+    main_character = CreateGameObject(ZeroVector2(),world->global_lua_state_ptr);
     SDL_RaiseWindow(GameWorld->graphics->game_window);
     ToggleDebugWindow(0);
     InitializeInput();
