@@ -1,5 +1,6 @@
 function Start ()
     print('Hello world from lua')
+    GameObject()
 end
 
 function Update (x)

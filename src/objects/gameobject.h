@@ -8,7 +8,6 @@
 #pragma once
 #include "../base/vector2.h"
 struct Controller;
-struct lua_State;
 
 
 /**
@@ -28,7 +27,9 @@ typedef struct GameObject
  *
  * @return An initialized gameobject.
  */
-GameObject* CreateGameObject(Vector2 location, struct lua_State* state);
+GameObject* CreateGameObject(Vector2 location);
+
+void PrintGameObjectId(GameObject* gameobject);
 /**
  * @brief Cleans up a gameobject for you.
  *
