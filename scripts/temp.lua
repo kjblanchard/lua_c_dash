@@ -1,7 +1,14 @@
 local c_gameobject = require("GameObject")
 
 --This sets the prototype for the Lua player class.  Put static variables inside of it.  We will set all the variables in the new function
-Player = {}
+Player = {
+    name = '',
+    gameobject = {
+        Id = function() end,
+        Location = function() end,
+    },
+
+}
 
 function NewPlayer(name)
     local player = {}
@@ -15,4 +22,7 @@ end
 
 function Player:Start()
     print('Hello world from lua with the name ' .. self['name'] .. ' and the boi')
+    print('The id is '..self.gameobject:Id())
+    local x,y = self.gameobject:Location()
+    print('Location is Y:'..y..' X: '..x)
 end

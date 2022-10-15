@@ -7,7 +7,7 @@
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
 
-//static GameObject* CheckGameObject (lua_State *state);
+static GameObject* CheckGameObject (lua_State *state);
 
 /**
  * @brief Function to create a gameobject, meant to be called from lua
@@ -29,21 +29,29 @@ static int LuaCreateGameObject(struct lua_State* state)
     lua_pop(state, 2);
     Vector2 location = CreateVector2(x, y);
     LogWarn("X is %f and y is %f", location.x, location.y);
-    GameObject* gameobject = (GameObject *)lua_newuserdata(state, sizeof(GameObject));
+    GameObject** gameobject = (GameObject **)lua_newuserdata(state, sizeof(GameObject*));
     luaL_getmetatable(state, "Lua.GameObject");
     lua_setmetatable(state, -2);
-    gameobject = CreateGameObject(location);
-    LogWarn("Thing is %d", gameobject->id);
-    //lua_pushlightuserdata(state, CreateGameObject(location, reference));
+    GameObject* go = CreateGameObject(location);
+    *gameobject = go;
+    LogWarn("ID of the gameobject not on the stack is  %d", (*gameobject)->id);
     return 1;
 }
 
-//static int LuaGetGameObjectId(lua_State* state)
-//{
-//    GameObject* gameobject = CheckGameObject(state);
-//    lua_pushnumber(state, gameobject->id);
-//    return 1;
-//}
+static int LuaGetGameObjectId(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    lua_pushnumber(state, gameobject->id);
+    return 1;
+}
+
+static int LuaGetGameObjectLocation(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    lua_pushnumber(state, gameobject->location.x);
+    lua_pushnumber(state, gameobject->location.y);
+    return 2;
+}
 /**
  * @brief Checks to see if we passed in a proper gameobject userdata, and then returns a pointer to the gameobject.  Used in all gameobject functions lua calls
  *
@@ -51,11 +59,13 @@ static int LuaCreateGameObject(struct lua_State* state)
  *
  * @return Pointer to a gameobject that the functions will use
  */
-//static GameObject* CheckGameObject (lua_State *state) {
-//      void* gameobject = luaL_checkudata(state, 1, "Lua.GameObject");
-//      luaL_argcheck(state, gameobject != NULL, 1, "`gameobject' expected");
-//      return (GameObject *)gameobject;
-//    }
+static GameObject* CheckGameObject (lua_State *state) {
+      void* gameobject = luaL_checkudata(state, 1, "Lua.GameObject");
+      luaL_argcheck(state, gameobject != NULL, 1, "`gameobject' expected");
+      GameObject** go = (GameObject**) gameobject;
+      //return (GameObject *) gameobject;
+      return *go;
+    }
 /**
  * @brief luaopen_require Is a function called when lua attempts to do a require('require') call, so we return a table with function values.
  *
@@ -71,6 +81,16 @@ static int luaopen_GameObject(struct lua_State* state)
       {"New", LuaCreateGameObject},
       {NULL, NULL}
     };
+    static const struct luaL_Reg gameobject_methods [] = {
+      {"Id", LuaGetGameObjectId},
+      {"Location", LuaGetGameObjectLocation},
+      {NULL, NULL}
+    };
+    luaL_newmetatable(state, "Lua.GameObject");
+    lua_pushstring(state, "__index");
+    lua_pushvalue(state, -2);  /* pushes the metatable */
+    lua_settable(state, -3);  /* metatable.__index = metatable */
+    luaL_setfuncs(state, gameobject_methods,0);
     //Create a new table on the stack
     lua_newtable(state);
     //Add functions to it

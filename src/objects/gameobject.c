@@ -4,16 +4,17 @@
 #include "../debug/debug.h"
 #include "../input/controller.h"
 
-static unsigned int current_id = 0;
+//static unsigned int current_id = 0;
 //
 
 GameObject* CreateGameObject(Vector2 location)
 {
     GameObject* gameobject = malloc(sizeof(*gameobject));
-    gameobject->id = current_id++;
+    //gameobject->id = current_id++;
+    gameobject->id = 30;
     gameobject->location = location;
     gameobject->controller = CreateController(ControllerType_Player);
-    LogInfo("Just created a gameobject with id %f, locationx %f and locationy %f", gameobject->id, gameobject->location.x, gameobject->location.y);
+    LogInfo("Just created a gameobject with id %d, locationx %f and locationy %f", gameobject->id, gameobject->location.x, gameobject->location.y);
     return gameobject;
 }
 
