@@ -20,10 +20,6 @@ typedef struct GameObject
      */
     unsigned int id;
     /**
-     * @brief The lua reference to the gameobject we created.
-     */
-    int lua_ref;
-    /**
      * @brief The current location of the gameobject.
      */
     Vector2 location;
@@ -40,7 +36,7 @@ typedef struct GameObject
  *
  * @return An initialized gameobject.
  */
-GameObject* CreateGameObject(Vector2 location, int lua_ref);
+GameObject* CreateGameObject(Vector2 location);
 
 void PrintGameObjectId(GameObject* gameobject);
 /**

@@ -2,9 +2,12 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
+
+//static GameObject* CheckGameObject (lua_State *state);
 
 /**
  * @brief Function to create a gameobject, meant to be called from lua
@@ -16,21 +19,43 @@
 static int LuaCreateGameObject(struct lua_State* state)
 {
     int stack_size = lua_gettop(state);
-    if(stack_size != 3)
+    if(stack_size != 2)
     {
-        LogError("GameObject.New call from lua requires 3 arguments: LuaObject,x,y; %d arguments given", stack_size);
+        LogError("GameObject.New call from lua requires 2 arguments: x,y; %d arguments given", stack_size);
         return 0;
     }
-    luaL_checktype(state, 1, LUA_TTABLE);
-    float x = luaL_checknumber(state, 2);
-    float y = luaL_checknumber(state, 3);
+    float x = luaL_checknumber(state, 1);
+    float y = luaL_checknumber(state, 2);
     lua_pop(state, 2);
-    int reference = luaL_ref(state,LUA_REGISTRYINDEX);
     Vector2 location = CreateVector2(x, y);
     LogWarn("X is %f and y is %f", location.x, location.y);
-    lua_pushlightuserdata(state, CreateGameObject(location, reference));
+    GameObject* gameobject = (GameObject *)lua_newuserdata(state, sizeof(GameObject));
+    luaL_getmetatable(state, "Lua.GameObject");
+    lua_setmetatable(state, -2);
+    gameobject = CreateGameObject(location);
+    LogWarn("Thing is %d", gameobject->id);
+    //lua_pushlightuserdata(state, CreateGameObject(location, reference));
     return 1;
 }
+
+//static int LuaGetGameObjectId(lua_State* state)
+//{
+//    GameObject* gameobject = CheckGameObject(state);
+//    lua_pushnumber(state, gameobject->id);
+//    return 1;
+//}
+/**
+ * @brief Checks to see if we passed in a proper gameobject userdata, and then returns a pointer to the gameobject.  Used in all gameobject functions lua calls
+ *
+ * @param state The lua State
+ *
+ * @return Pointer to a gameobject that the functions will use
+ */
+//static GameObject* CheckGameObject (lua_State *state) {
+//      void* gameobject = luaL_checkudata(state, 1, "Lua.GameObject");
+//      luaL_argcheck(state, gameobject != NULL, 1, "`gameobject' expected");
+//      return (GameObject *)gameobject;
+//    }
 /**
  * @brief luaopen_require Is a function called when lua attempts to do a require('require') call, so we return a table with function values.
  *
@@ -40,6 +65,7 @@ static int LuaCreateGameObject(struct lua_State* state)
  */
 static int luaopen_GameObject(struct lua_State* state)
 {
+    luaL_newmetatable(state, "Lua.GameObject");
     //Create an array of lua function names, to references to their functions.  Null/null ends
     static const struct luaL_Reg gameobject_functions [] = {
       {"New", LuaCreateGameObject},
@@ -85,19 +111,21 @@ int RunLuaScript(struct lua_State* state)
     if(lua_pcall(state,1,1,0) != LUA_OK)
         //Get the string from the stack
         LogWarn("Error: %s", lua_tostring(state, -1));
-    //This pushes the integer we need to reference onto the stack
-    GameObject* gameobject_ref = (GameObject*)lua_topointer(state, -1);
-    LogWarn("The gameobject has a locationx of  %f and y is %f, and id is %d", gameobject_ref->location.x, gameobject_ref->location.y, gameobject_ref->id);
-    lua_pop(state, 1);
 
-    lua_pushnumber(state, gameobject_ref->lua_ref);
+    //Store the lua object in the registry currently.
+    int gameobject_ref = luaL_ref(state, LUA_REGISTRYINDEX);
+    //LogWarn("The gameobject has a locationx of  %f and y is %f, and id is %d", gameobject_ref->location.x, gameobject_ref->location.y, gameobject_ref->id);
+    //exit(1);
+    //lua_pop(state, 1);
+
+    lua_pushnumber(state, gameobject_ref);
     lua_gettable(state, LUA_REGISTRYINDEX);
     //Lua table /userdata of the player is on stack now
     lua_getglobal(state, "Player");
     //Gets the value from a table.  So, we got the Player table, now we need to get the new function value and puts it on the stack
     lua_getfield(state, -1, "Start");
     //Now the Player.Start function is on the stack as the function to call
-    lua_pushnumber(state, gameobject_ref->lua_ref);
+    lua_pushnumber(state, gameobject_ref);
     lua_gettable(state, LUA_REGISTRYINDEX);
     //Use the first parameter as the value we stored in the registry of the lua class which is the self parameter in the lua function.
     if(lua_pcall(state,1,0,0) != LUA_OK)
