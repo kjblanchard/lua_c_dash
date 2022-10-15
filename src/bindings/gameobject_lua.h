@@ -10,4 +10,14 @@
 struct lua_State;
 
 
+/**
+ * @brief Creates a gameobject and calls its start function
+ *
+ * @param state The lua state
+ *
+ * @return  the lua reference to the function
+ */
 int RunLuaScript(struct lua_State* state);
+
+
+void DrawAllGameObjects(struct lua_State* state);

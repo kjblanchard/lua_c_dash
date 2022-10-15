@@ -24,6 +24,8 @@ typedef struct GameObject
      */
     Vector2 location;
 
+    int lua_object_reference;
+
     //Temporary values for testing
     struct Controller* controller;
 
@@ -36,7 +38,7 @@ typedef struct GameObject
  *
  * @return An initialized gameobject.
  */
-GameObject* CreateGameObject(Vector2 location);
+GameObject* CreateGameObject(Vector2 location, int lua_object_reference);
 
 void PrintGameObjectId(GameObject* gameobject);
 /**

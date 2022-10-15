@@ -23,7 +23,6 @@
 static unsigned int debug_window_enabled = 0;
 static unsigned int debug_window_created = 0;
 
-//static GameObject* main_character = NULL;
 
 static void ProcessInput()
 {
@@ -84,7 +83,6 @@ int main(int argc, char **argv)
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
     debug_window_created = InitDebugWindow();
-    //main_character = CreateGameObject(ZeroVector2(),world->global_lua_state_ptr);
     RunLuaScript(world->global_lua_state_ptr);
 
     SDL_RaiseWindow(GameWorld->graphics->game_window);
@@ -103,17 +101,7 @@ int main(int argc, char **argv)
             ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 0,0,0,0);
         SDL_RenderClear(world->graphics->game_renderer);
-
-//        {//Draw character.
-//            SDL_Rect char_rect;
-//            SDL_SetRenderDrawColor(world->graphics->game_renderer, 255,255,255,255);
-//            char_rect.x = main_character->location.x;
-//            char_rect.y = main_character->location.y;
-//            char_rect.w = char_rect.h = 32;
-//            SDL_RenderDrawRect(world->graphics->game_renderer, &char_rect);
-//            if(IsControllerButtonPressed(main_character->controller, ControllerButton_A))
-//                LogWarn("Pressed");
-//        }
+        DrawAllGameObjects(world->global_lua_state_ptr);
         SDL_RenderPresent(world->graphics->game_renderer);
     } 
     if(debug_window_created)

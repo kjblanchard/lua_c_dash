@@ -6,6 +6,19 @@
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
+//Drawing temporary
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_timer.h>
+#include "SDL2/SDL_events.h"
+#include "SDL2/SDL_keycode.h"
+#include "SDL2/SDL_video.h"
+#include "../core/world.h"
+#include "../core/graphics_device.h"
+#include "../input/controller.h"
+
+GameObject* gameobject_array[10];
 
 static GameObject* CheckGameObject (lua_State *state);
 
@@ -18,21 +31,24 @@ static GameObject* CheckGameObject (lua_State *state);
  */
 static int LuaCreateGameObject(struct lua_State* state)
 {
+
+    luaL_checktype(state, 3, LUA_TTABLE);
     int stack_size = lua_gettop(state);
-    if(stack_size != 2)
+    if(stack_size != 3)
     {
-        LogError("GameObject.New call from lua requires 2 arguments: x,y; %d arguments given", stack_size);
+        LogError("GameObject.New call from lua requires 3 arguments: LuaObjectTable, x,y; %d arguments given", stack_size);
         return 0;
     }
     float x = luaL_checknumber(state, 1);
     float y = luaL_checknumber(state, 2);
-    lua_pop(state, 2);
+    //Get the reference which is now the table on the stack.
+    int reference = luaL_ref(state,LUA_REGISTRYINDEX);
     Vector2 location = CreateVector2(x, y);
     LogWarn("X is %f and y is %f", location.x, location.y);
     GameObject** gameobject = (GameObject **)lua_newuserdata(state, sizeof(GameObject*));
     luaL_getmetatable(state, "Lua.GameObject");
     lua_setmetatable(state, -2);
-    GameObject* go = CreateGameObject(location);
+    GameObject* go = CreateGameObject(location, reference);
     *gameobject = go;
     LogWarn("ID of the gameobject not on the stack is  %d", (*gameobject)->id);
     return 1;
@@ -131,21 +147,21 @@ int RunLuaScript(struct lua_State* state)
     if(lua_pcall(state,1,1,0) != LUA_OK)
         //Get the string from the stack
         LogWarn("Error: %s", lua_tostring(state, -1));
-
-    //Store the lua object in the registry currently.
-    int gameobject_ref = luaL_ref(state, LUA_REGISTRYINDEX);
-    //LogWarn("The gameobject has a locationx of  %f and y is %f, and id is %d", gameobject_ref->location.x, gameobject_ref->location.y, gameobject_ref->id);
-    //exit(1);
-    //lua_pop(state, 1);
-
-    lua_pushnumber(state, gameobject_ref);
+    //Get the gameobject from the stack from the return call.
+    void* gameobject = luaL_checkudata(state, -1, "Lua.GameObject");
+    luaL_argcheck(state, gameobject != NULL, 1, "`gameobject' expected");
+    GameObject** go = (GameObject**) gameobject;
+    gameobject_array[0] = *go;
+    GameObject* game = gameobject_array[0];
+    //Push the lua_object onto the stack
+    lua_pushnumber(state, game->lua_object_reference);
     lua_gettable(state, LUA_REGISTRYINDEX);
     //Lua table /userdata of the player is on stack now
     lua_getglobal(state, "Player");
     //Gets the value from a table.  So, we got the Player table, now we need to get the new function value and puts it on the stack
     lua_getfield(state, -1, "Start");
     //Now the Player.Start function is on the stack as the function to call
-    lua_pushnumber(state, gameobject_ref);
+    lua_pushnumber(state, game->lua_object_reference);
     lua_gettable(state, LUA_REGISTRYINDEX);
     //Use the first parameter as the value we stored in the registry of the lua class which is the self parameter in the lua function.
     if(lua_pcall(state,1,0,0) != LUA_OK)
@@ -153,6 +169,22 @@ int RunLuaScript(struct lua_State* state)
         LogWarn("Error2: %s", lua_tostring(state, -1));
 
     return 1;
+
+}
+
+void DrawAllGameObjects(struct lua_State* state)
+{
+    GameObject* gameobject = gameobject_array[0];
+        {//Draw character.
+            SDL_Rect char_rect;
+            SDL_SetRenderDrawColor(GameWorld->graphics->game_renderer, 255,255,255,255);
+            char_rect.x = gameobject->location.x;
+            char_rect.y = gameobject->location.y;
+            char_rect.w = char_rect.h = 32;
+            SDL_RenderDrawRect(GameWorld->graphics->game_renderer, &char_rect);
+            if(IsControllerButtonPressed(gameobject->controller, ControllerButton_A))
+                LogWarn("Pressed");
+        }
 
 }
 
