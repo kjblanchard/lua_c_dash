@@ -6,42 +6,69 @@
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
 
+/**
+ * @brief Function to create a gameobject, meant to be called from lua
+ *
+ * @param state The lua state
+ *
+ * @return The amount of return values lua should get.
+ */
 static int LuaCreateGameObject(struct lua_State* state)
 {
-    float x = luaL_checknumber(state, 1);
-    float y = luaL_checknumber(state, 2);
-    luaL_checktype(state, 3, LUA_TTABLE);
+    int stack_size = lua_gettop(state);
+    if(stack_size != 3)
+    {
+        LogError("GameObject.New call from lua requires 3 arguments: LuaObject,x,y; %d arguments given", stack_size);
+        return 0;
+    }
+    luaL_checktype(state, 1, LUA_TTABLE);
+    float x = luaL_checknumber(state, 2);
+    float y = luaL_checknumber(state, 3);
+    lua_pop(state, 2);
     int reference = luaL_ref(state,LUA_REGISTRYINDEX);
     Vector2 location = CreateVector2(x, y);
     LogWarn("X is %f and y is %f", location.x, location.y);
     lua_pushlightuserdata(state, CreateGameObject(location, reference));
-    //THe number of results is what we return
     return 1;
-
 }
-
-int RegisterAllGameobjectFunctions(struct lua_State* state)
+/**
+ * @brief luaopen_require Is a function called when lua attempts to do a require('require') call, so we return a table with function values.
+ *
+ * @param state The lua state where we put this
+ *
+ * @return the amount of return values lua should get.
+ */
+static int luaopen_GameObject(struct lua_State* state)
 {
-    //First we push the c function onto the stack
-    lua_pushcfunction(state, LuaCreateGameObject);
-    //Then we set a global, with the first thing on the stack with the name.
+    //Create an array of lua function names, to references to their functions.  Null/null ends
     static const struct luaL_Reg gameobject_functions [] = {
       {"New", LuaCreateGameObject},
       {NULL, NULL}
     };
-    //Create a new table
+    //Create a new table on the stack
     lua_newtable(state);
     //Add functions to it
     luaL_setfuncs(state, gameobject_functions, 0);
-    //Add the global table so that Lua can call these functions.
-    lua_setglobal(state, "GameObject");
+    //Tell lua we are returning one thing (the table with the functions)
     return 1;
 
+}
+/**
+ * @brief Loads the gameobject library into lua, so that we can call it with require.
+ *
+ * @param state The lua state to push the item.
+ *
+ * @return 
+ */
+static int RegisterGameObjectToLuaLibrary(struct lua_State* state)
+{
+    luaL_requiref(state, "GameObject", luaopen_GameObject, 0);
+    return 1;
 }
 
 int RunLuaScript(struct lua_State* state)
 {
-    RegisterAllGameobjectFunctions(state);
+    RegisterGameObjectToLuaLibrary(state);
     //Opens all the libraries, this is needed if we need to print something in lua.
     luaL_openlibs(state);
     //Load the temp script file, and make sure it works.

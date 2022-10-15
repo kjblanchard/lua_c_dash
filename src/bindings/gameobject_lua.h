@@ -9,7 +9,5 @@
 
 struct lua_State;
 
-//Vector2 location is something that we need.
 
-int RegisterAllGameobjectFunctions(struct lua_State* state);
 int RunLuaScript(struct lua_State* state);
