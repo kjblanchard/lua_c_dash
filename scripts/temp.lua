@@ -7,7 +7,7 @@ function NewPlayer(name)
     --Sets the metatable for the local player to reference the Player construct for lookups, which will have the functions and such
     setmetatable(player, Player)
     --Create the gameobject from C and attach it to this guy so that we can reference it from lua for future C function calls.
-    player.gameobject = GameObject(10,33,player)
+    player.gameobject = GameObject.New(10,33,player)
     return player.gameobject
 end
 

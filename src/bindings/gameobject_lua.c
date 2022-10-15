@@ -25,7 +25,16 @@ int RegisterAllGameobjectFunctions(struct lua_State* state)
     //First we push the c function onto the stack
     lua_pushcfunction(state, LuaCreateGameObject);
     //Then we set a global, with the first thing on the stack with the name.
-    lua_setglobal(state,"GameObject");
+    static const struct luaL_Reg gameobject_functions [] = {
+      {"New", LuaCreateGameObject},
+      {NULL, NULL}
+    };
+    //Create a new table
+    lua_newtable(state);
+    //Add functions to it
+    luaL_setfuncs(state, gameobject_functions, 0);
+    //Add the global table so that Lua can call these functions.
+    lua_setglobal(state, "GameObject");
     return 1;
 
 }
