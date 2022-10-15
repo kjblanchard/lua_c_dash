@@ -32,7 +32,7 @@ NuklearLabel* label_test = NULL;
 /**
  * @brief The max amount of characters to write for each debug message.
  */
-#define MAX_LOG_SIZE 50
+#define MAX_LOG_SIZE 100
 /**
  * @brief The file that we can write to when errors occur.
  */

@@ -15,19 +15,32 @@ struct Controller;
  */
 typedef struct GameObject
 {
+    /**
+     * @brief The unique id of the gameobject.
+     */
     unsigned int id;
-    struct Controller* controller;
+    /**
+     * @brief The lua reference to the gameobject we created.
+     */
+    int lua_ref;
+    /**
+     * @brief The current location of the gameobject.
+     */
     Vector2 location;
+
+    //Temporary values for testing
+    struct Controller* controller;
 
 } GameObject;
 /**
  * @brief Creates a new gameobject, and assigns it's proper values
  *
  * @param location the location of this gameobject
+ * @param lua_ref the lua reference id that we should use when we need to reference or call functions on this lua object.
  *
  * @return An initialized gameobject.
  */
-GameObject* CreateGameObject(Vector2 location);
+GameObject* CreateGameObject(Vector2 location, int lua_ref);
 
 void PrintGameObjectId(GameObject* gameobject);
 /**
