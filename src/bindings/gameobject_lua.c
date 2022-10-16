@@ -19,9 +19,68 @@
 #include "../input/controller.h"
 
 GameObject* gameobject_array[10];
+static int LuaCheckIfButtonPressed(lua_State* state);
+static int LuaCheckIfButtonHeld(lua_State* state);
+static int LuaCheckIfButtonReleased(lua_State* state);
+static int LuaGetX(lua_State* state);
+static int LuaSetX(lua_State* state);
+static int LuaGetY(lua_State* state);
+static int LuaSetY(lua_State* state);
 
 static GameObject* CheckGameObject (lua_State *state);
 
+static int LuaCheckIfButtonPressed(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int button = luaL_checknumber(state, 2);
+    lua_pushboolean(state, IsControllerButtonPressed(gameobject->controller, button));
+    return 1;
+}
+static int LuaCheckIfButtonHeld(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int button = luaL_checknumber(state, 2);
+    lua_pushboolean(state, IsControllerButtonHeld(gameobject->controller, button));
+    return 1;
+}
+static int LuaCheckIfButtonReleased(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int button = luaL_checknumber(state, 2);
+    lua_pushboolean(state, IsControllerButtonReleased(gameobject->controller, button));
+    return 1;
+}
+static int LuaGetX(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    lua_pushnumber(state, gameobject->location.x);
+    return 1;
+
+}
+static int LuaSetX(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int x = luaL_checknumber(state, 2);
+    gameobject->location.x = x;
+    return 0;
+
+}
+static int LuaGetY(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    lua_pushnumber(state, gameobject->location.y);
+    return 1;
+
+}
+static int LuaSetY(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int y = luaL_checknumber(state, 2);
+    gameobject->location.y = y;
+    return 0;
+
+}
+static int LuaSetY(lua_State* state);
 /**
  * @brief Function to create a gameobject, meant to be called from lua
  *
@@ -100,6 +159,13 @@ static int luaopen_GameObject(struct lua_State* state)
     static const struct luaL_Reg gameobject_methods [] = {
       {"Id", LuaGetGameObjectId},
       {"Location", LuaGetGameObjectLocation},
+      {"ButtonPressed", LuaCheckIfButtonPressed},
+      {"ButtonHeld", LuaCheckIfButtonHeld},
+      {"ButtonReleased", LuaCheckIfButtonReleased},
+      {"X", LuaGetX},
+      {"Y", LuaGetY},
+      {"SetX", LuaSetX},
+      {"SetY", LuaSetY},
       {NULL, NULL}
     };
     luaL_newmetatable(state, "Lua.GameObject");
@@ -134,7 +200,7 @@ int RunLuaScript(struct lua_State* state)
     //Opens all the libraries, this is needed if we need to print something in lua.
     luaL_openlibs(state);
     //Load the temp script file, and make sure it works.
-    if(luaL_loadfile(state, "./scripts/temp.lua") || lua_pcall(state, 0, 0, 0))
+    if(luaL_loadfile(state, "./scripts/player.lua") || lua_pcall(state, 0, 0, 0))
         LogError("Error, cannot load script file");
 
     //Get from the file we read the Player base.
@@ -172,19 +238,37 @@ int RunLuaScript(struct lua_State* state)
 
 }
 
+void UpdateAllGameObjects(struct lua_State* state)
+{
+    GameObject* game = gameobject_array[0];
+    //Push the lua_object onto the stack
+    lua_pushnumber(state, game->lua_object_reference);
+    lua_gettable(state, LUA_REGISTRYINDEX);
+    //Lua table /userdata of the player is on stack now
+    lua_getglobal(state, "Player");
+    //Gets the value from a table.  So, we got the Player table, now we need to get the new function value and puts it on the stack
+    lua_getfield(state, -1, "Update");
+    //Now the Player.Start function is on the stack as the function to call
+    lua_pushnumber(state, game->lua_object_reference);
+    lua_gettable(state, LUA_REGISTRYINDEX);
+    //Use the first parameter as the value we stored in the registry of the lua class which is the self parameter in the lua function.
+    if(lua_pcall(state,1,0,0) != LUA_OK)
+        //Get the string from the stack
+        LogWarn("Error2: %s", lua_tostring(state, -1));
+
+}
+
 void DrawAllGameObjects(struct lua_State* state)
 {
     GameObject* gameobject = gameobject_array[0];
-        {//Draw character.
-            SDL_Rect char_rect;
-            SDL_SetRenderDrawColor(GameWorld->graphics->game_renderer, 255,255,255,255);
-            char_rect.x = gameobject->location.x;
-            char_rect.y = gameobject->location.y;
-            char_rect.w = char_rect.h = 32;
-            SDL_RenderDrawRect(GameWorld->graphics->game_renderer, &char_rect);
-            if(IsControllerButtonPressed(gameobject->controller, ControllerButton_A))
-                LogWarn("Pressed");
-        }
+    SDL_Rect char_rect;
+    SDL_SetRenderDrawColor(GameWorld->graphics->game_renderer, 255,255,255,255);
+    char_rect.x = gameobject->location.x;
+    char_rect.y = gameobject->location.y;
+    char_rect.w = char_rect.h = 32;
+    SDL_RenderDrawRect(GameWorld->graphics->game_renderer, &char_rect);
+    if(IsControllerButtonPressed(gameobject->controller, ControllerButton_A))
+        LogWarn("Pressed");
 
 }
 

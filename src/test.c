@@ -97,6 +97,7 @@ int main(int argc, char **argv)
         //previous = current;
         ProcessInput();
         UpdateSound();
+        UpdateAllGameObjects(world->global_lua_state_ptr);
         if(debug_window_created && debug_window_enabled)
             ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 0,0,0,0);
