@@ -8,7 +8,7 @@
 #include "alhelpers.h"
 #include "openal.h"
 #include "../debug/debug.h"
-#include "../base/queue.h"
+#include "../base/stack.h"
 #include "../base/vector.h"
 
 #define BGM_NUM_BUFFERS 4
@@ -37,8 +37,8 @@ typedef struct StreamPlayer {
 typedef struct SfxPlayer {
     ALuint buffers[MAX_SFX_SOUNDS];
     ALuint sources[MAX_SFX_SOUNDS];
-    vector* playing_buffers;
-    queue* free_buffers;
+    vector* playing_buffers_vector;
+    Stack* free_buffers_stack;
 
 } SfxPlayer;
 /**
@@ -262,8 +262,8 @@ static SfxPlayer* NewSfxPlayer()
 {
     SfxPlayer* sfx_player;
     sfx_player = calloc(1,sizeof(*sfx_player));
-    sfx_player->free_buffers = CreateQueue(MAX_SFX_SOUNDS);
-    sfx_player->playing_buffers = CreateVector();
+    sfx_player->free_buffers_stack = CreateStack(MAX_SFX_SOUNDS);
+    sfx_player->playing_buffers_vector = CreateVector();
     alGenBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
     assert(alGetError() == AL_NO_ERROR && "Could not create buffers");
     alGenSources(MAX_SFX_SOUNDS, sfx_player->sources);
@@ -273,7 +273,7 @@ static SfxPlayer* NewSfxPlayer()
         alSourcei(sfx_player->sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
         alSourcei(sfx_player->sources[i], AL_ROLLOFF_FACTOR, 0);
         assert(alGetError() == AL_NO_ERROR && "Could not set source parameters");
-        Enqueue(sfx_player->free_buffers, i);
+        PushStack(sfx_player->free_buffers_stack, i);
     }
     return sfx_player;
 }
@@ -507,19 +507,19 @@ int CloseSfxFileAl(Sg_Loaded_Sfx* loaded_sfx)
 
 static int PlaySfxFile(SfxPlayer* player, Sg_Loaded_Sfx* sfx_file, float volume)
 {
-    if(QueueIsEmpty(player->free_buffers))
+    if(player->free_buffers_stack->size == 0)
     {
         LogWarn("Buffers are empty");
         return 0;
     }
-    int buffer_num = Dequeue(player->free_buffers);
+    int buffer_num = PopStack(player->free_buffers_stack);
     alSourceRewind(sfx_player->sources[buffer_num]);
     alSourcei(sfx_player->sources[buffer_num], AL_BUFFER, 0);
     alSourcef(sfx_player->sources[buffer_num], AL_GAIN, volume);
     alBufferData(sfx_player->buffers[buffer_num], sfx_file->format, sfx_file->sound_data, sfx_file->size, sfx_file->sample_rate);
     alSourceQueueBuffers(sfx_player->sources[buffer_num], 1, &sfx_player->buffers[buffer_num]);
     alSourcePlay(sfx_player->sources[buffer_num]);
-    VectorPushBack(player->playing_buffers, buffer_num);
+    VectorPushBack(player->playing_buffers_vector, buffer_num);
     return 1;
 }
 
@@ -578,11 +578,11 @@ static int UpdatePlayer(StreamPlayer *player)
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers;
-    int processed_buffer_nums[player->playing_buffers->size];
+    int processed_buffer_nums[player->playing_buffers_vector->size];
     int buffs_processed = 0;
-    for (size_t i = 0; i < player->playing_buffers->size; ++i) 
+    for (size_t i = 0; i < player->playing_buffers_vector->size; ++i) 
     {
-        ALuint buf_num = player->playing_buffers->data[i];
+        ALuint buf_num = player->playing_buffers_vector->data[i];
         alGetSourcei(player->sources[buf_num], AL_BUFFERS_PROCESSED, &processed_buffers);
         if (alGetError() != AL_NO_ERROR)
         {
@@ -598,7 +598,7 @@ static int UpdateSfxPlayer(SfxPlayer *player)
     }
     for(size_t i = 0; i < buffs_processed; ++i)
     {
-        VectorRemoveItem(player->playing_buffers, processed_buffer_nums[i]);
+        VectorRemoveItem(player->playing_buffers_vector, processed_buffer_nums[i]);
     }
     return 1;
 }
@@ -606,7 +606,7 @@ static int UpdateSfxPlayer(SfxPlayer *player)
 static void UnqueueSfxBuffer(SfxPlayer* player, ALint source_num)
 {
     alSourceUnqueueBuffers(player->sources[source_num], 1, &player->buffers[source_num]);
-    Enqueue(player->free_buffers, source_num);
+    PushStack(player->free_buffers_stack, source_num);
 
 }
 
@@ -718,4 +718,6 @@ static void DeleteSfxPlayer(SfxPlayer *sfx_player)
 {
     alDeleteSources(MAX_SFX_SOUNDS, sfx_player->sources);
     alDeleteBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
+    DestroyStack(sfx_player->free_buffers_stack);
+    DestroyVector(sfx_player->playing_buffers_vector);
 }
