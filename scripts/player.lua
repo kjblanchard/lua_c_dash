@@ -1,4 +1,7 @@
+--package.path = package.path .. ";../?.lua;./scripts/?.lua;"
 local c_gameobject = require("GameObject")
+local help_library = require("help")
+
 
 ControllerButtons = {
     Up = 1,

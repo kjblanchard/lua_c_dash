@@ -32,7 +32,7 @@ NuklearLabel* label_test = NULL;
 /**
  * @brief The max amount of characters to write for each debug message.
  */
-#define MAX_LOG_SIZE 100
+//#define MAX_LOG_SIZE 2000
 /**
  * @brief The file that we can write to when errors occur.
  */
@@ -87,7 +87,8 @@ static void Log(LogLevel level, const char* thing_to_write)
 
 static void LogSetup(LogLevel level, const char* fmt,  va_list args)
 {
-    char buf[MAX_LOG_SIZE];
+    int size = vsnprintf(NULL,0 , fmt, args);
+    char buf[size];
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
     Log(level, buf);
