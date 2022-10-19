@@ -7,13 +7,12 @@
 //static unsigned int current_id = 0;
 //
 
-GameObject* CreateGameObject(Vector2 location, int lua_object_reference)
+GameObject* CreateGameObject(Vector2 location)
 {
     GameObject* gameobject = malloc(sizeof(*gameobject));
     //gameobject->id = current_id++;
     gameobject->id = 30;
     gameobject->location = location;
-    gameobject->lua_object_reference = lua_object_reference;
     gameobject->controller = CreateController(ControllerType_Player);
     LogInfo("Just created a gameobject with id %d, locationx %f and locationy %f", gameobject->id, gameobject->location.x, gameobject->location.y);
     return gameobject;
