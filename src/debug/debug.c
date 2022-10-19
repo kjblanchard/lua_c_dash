@@ -78,7 +78,7 @@ static void Log(LogLevel level, const char* thing_to_write)
     struct tm *gm_time = gmtime(&current_time); 
     char buf[30];
     strftime(buf, sizeof(buf), "%m-%d-%H:%M-%S", gm_time);
-    fprintf(stderr, "%s: %s\n",buf,thing_to_write);
+    fprintf(stderr, "%s: %s end\n",buf,thing_to_write);
     if(level == Sg_Debug_Error && open_debug_file)
     {
         fprintf(open_debug_file, "%s: %s\n",buf, thing_to_write);
