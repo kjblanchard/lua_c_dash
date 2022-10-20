@@ -27,20 +27,20 @@ function GameObject:start()
 end
 
 --global functions
-function Create_gameobject(x, y, start)
+function Create_gameobject(x, y, start,lua_obj)
     local gameobject  = {}
     setmetatable(gameobject,GameObject)
     local udata, ptr = prv.Create(x,y)
     gameobject.userdata = udata
     gameobject.ptr = ptr
-    gameobjects[ptr] = gameobject
+    gameobjects[ptr] = lua_obj
     gameobject.start = start or GameObject.start
     return gameobject, ptr
 end
 
 function aux.start_gameobject(ptr)
-    local gameobject = gameobjects[ptr]
-    gameobject:start()
+    local gameobj = gameobjects[ptr]
+    gameobj.gameobject.start(gameobj)
 end
 
 
