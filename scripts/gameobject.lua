@@ -40,7 +40,7 @@ end
 
 function aux.start_gameobject(ptr)
     local gameobject = gameobjects[ptr]
-    gameobject.start(gameobject)
+    gameobject:start()
 end
 
 

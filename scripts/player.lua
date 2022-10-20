@@ -12,7 +12,8 @@ function NewPlayer(name)
     setmetatable(player, Player)
     --Create the gameobject from C and attach it to this guy so that we can reference it from lua for future C function calls.
     player.gameobject, ptr = Create_gameobject(10,30,Player.Start)
-    player.gameobject.x(player.gameobject)
+    --player.gameobject.x(player.gameobject)
+    player.gameobject:x()
 
     --Return the gameobject pointer to C, so that we can use it.
     return ptr
@@ -20,7 +21,7 @@ end
 
 function Player:Start()
     gameobject_x = self:x(self)
-    print('Lua Start function.. called from gameobject')
+    print('Start x is '..gameobject_x)
 end
 
 
