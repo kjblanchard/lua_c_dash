@@ -110,6 +110,7 @@ static int setLuaPath( lua_State* L, const char* path )
  */
 static int LuaCreateGameObject(struct lua_State* state)
 {
+    //Stack is x y
 
     float x = luaL_checknumber(state, 1);
     float y = luaL_checknumber(state, 2);
@@ -120,9 +121,15 @@ static int LuaCreateGameObject(struct lua_State* state)
     //GameObject* go = CreateGameObject(location);
     gameobject = CreateGameObject(location);
     //Set userdata metatable from the aux table
-    lua_getfield(state, LUA_GAMEOBJECT_AUX_TABLE_REF, "metatable");
+    int type = lua_rawgeti(state, LUA_REGISTRYINDEX, LUA_GAMEOBJECT_AUX_TABLE_REF);
+    LogWarn("Type is %d",type);
+    //gameobj , Aux 
+    lua_pushstring(state, "LuaGameObject");
+    //go/aux/string
+    lua_setfield(state, -1, "__name");
+    //go/aux
     lua_setmetatable(state, -2);
-    LogWarn("ID of the gameobject not on the stack is %d", gameobject->id);
+    LogWarn("ID of the gameobject not on the stack is %d ", gameobject->id);
     //Return userdata and address of gameobject
     lua_pushlightuserdata(state, gameobject);
     return 2;
@@ -178,10 +185,11 @@ static int initialize(lua_State* state)
     };
     //Set the "aux" table as environment
     lua_pushvalue(state, 1);
-    //Store the GameobjectAux table as a reference in the Lua ref table so that we can reference it.
-    luaL_ref(state, -1);
+    //Store the GameobjectAux table as a reference in the Lua ref table so that we can reference it later
+    LUA_GAMEOBJECT_AUX_TABLE_REF = luaL_ref(state, LUA_REGISTRYINDEX);
+    //It is popped off now?
     //Push the table on top of the stack "prv table"
-    lua_pushvalue(state, 2);
+    lua_pushvalue(state, 1);
     luaL_setfuncs(state, gameobject_methods, 0);
     //Tell lua we are returning one thing (the table with the functions)
     return 1;
@@ -230,10 +238,13 @@ int RunLuaScript(struct lua_State* state)
     lua_pushstring(state,name);
     //Call Player.New
     if(lua_pcall(state,1,1,0) != LUA_OK)
-        //Get the string from the stack
-        LogWarn("Error: %s", lua_tostring(state, -1));
-    GameObject* created_object = (GameObject*)lua_topointer(state, -1);
-    LogWarn("Gameobject id is %d ",created_object->id);
+    {
+        LogWarn("Error2k: %s", lua_tostring(state, -1));
+
+    }
+//        //Get the string from the stack
+//    GameObject* created_object = (GameObject*)lua_topointer(state, -1);
+//    LogWarn("Gameobject id is %d ",created_object->id);
     return 1;
 
 }
