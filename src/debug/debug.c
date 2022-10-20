@@ -88,7 +88,7 @@ static void Log(LogLevel level, const char* thing_to_write)
 static void LogSetup(LogLevel level, const char* fmt,  va_list args)
 {
     int size = vsnprintf(NULL,0 , fmt, args);
-    char buf[size];
+    char buf[size +1];
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
     Log(level, buf);
