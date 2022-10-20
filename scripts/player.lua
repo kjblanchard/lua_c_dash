@@ -12,7 +12,12 @@ function NewPlayer(name)
     setmetatable(player, Player)
     --Create the gameobject from C and attach it to this guy so that we can reference it from lua for future C function calls.
     local ptr
+    print(type(ptr))
     player.gameobject, ptr = Create_gameobject(10,30,Player.Start)
+    print("No u")
+    print(type(player.gameobject))
+    print(type(ptr))
+    --player.gameobject:x()
 
     --Return the gameobject pointer to C, so that we can use it.
     return ptr

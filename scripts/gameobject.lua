@@ -1,6 +1,11 @@
 local initialize = require "GameObject"
 local aux,prv = {},{}
-local GameObject = {}
+local GameObject = {
+    userdata = {},
+    ptr = {},
+    start = function () end
+}
+
 prv = initialize(aux,prv)
 local umeta = {}
 --umeta.__gc = prv.del
@@ -8,7 +13,7 @@ local gameobjects = setmetatable({},{__mode = "v"})
 GameObject.__index = GameObject
 
 function GameObject:x()
-    return prv.X()
+    return prv.X(self.userdata)
 end
 
 function GameObject:location()
@@ -19,19 +24,16 @@ function GameObject:start()
     return 0
 end
 
-function GameObject:ptr()
-    return self.ptr
-end
-
 --global functions
 function Create_gameobject(x, y, start)
-    for key,value in pairs(prv) do
-        print (key)
-    end
-
+    print('here')
+    local gameobject  = {}
+    setmetatable(gameobject,GameObject)
+    print('here2')
     local udata, ptr = prv.Create(x,y)
-    local gameobject = setmetatable({},GameObject)
-    gameobject.__udata = udata
+    print('here3')
+    gameobject.userdata = udata
+    gameobject.ptr = ptr
     gameobjects[ptr] = gameobject
     gameobject.start = start or GameObject.start
     return gameobject, ptr
