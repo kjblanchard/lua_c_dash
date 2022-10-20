@@ -13,7 +13,9 @@ local gameobjects = setmetatable({},{__mode = "v"})
 GameObject.__index = GameObject
 
 function GameObject:x()
-    return prv.X(self.userdata)
+    local x = prv.X(self.userdata)
+    print("X value in lua is "..x)
+    return x
 end
 
 function GameObject:location()
@@ -26,12 +28,9 @@ end
 
 --global functions
 function Create_gameobject(x, y, start)
-    print('here')
     local gameobject  = {}
     setmetatable(gameobject,GameObject)
-    print('here2')
     local udata, ptr = prv.Create(x,y)
-    print('here3')
     gameobject.userdata = udata
     gameobject.ptr = ptr
     gameobjects[ptr] = gameobject

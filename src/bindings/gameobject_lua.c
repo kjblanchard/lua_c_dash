@@ -28,7 +28,7 @@ static int LuaSetX(lua_State* state);
 static int LuaGetY(lua_State* state);
 static int LuaSetY(lua_State* state);
 
-static int LUA_GAMEOBJECT_AUX_TABLE_REF;
+static int LUA_GAMEOBJECT_AUX_TABLE_REF = 0;
 
 static GameObject* CheckGameObject (lua_State *state);
 
@@ -117,21 +117,15 @@ static int LuaCreateGameObject(struct lua_State* state)
     Vector2 location = CreateVector2(x, y);
     LogWarn("X is %f and y is %f", location.x, location.y);
     //Pack gameobject in userdata, which also puts it on the stack.
-    GameObject* gameobject = (GameObject *)lua_newuserdata(state, sizeof(GameObject*));
-    //GameObject* go = CreateGameObject(location);
-    gameobject = CreateGameObject(location);
-    //Set userdata metatable from the aux table
-    int type = lua_rawgeti(state, LUA_REGISTRYINDEX, LUA_GAMEOBJECT_AUX_TABLE_REF);
-    LogWarn("Type is %d",type);
-    //gameobj , Aux 
-    lua_pushstring(state, "LuaGameObject");
-    //go/aux/string
-    lua_setfield(state, -1, "__name");
-    //go/aux
+    GameObject** gameobject = (GameObject **)lua_newuserdata(state, sizeof(GameObject*));
+    luaL_getmetatable(state, "Lua.GameObject");
     lua_setmetatable(state, -2);
-    LogWarn("ID of the gameobject not on the stack is %d ", gameobject->id);
+    GameObject* go = CreateGameObject(location);
+    *gameobject = go;
+    //x/y/gameobj
+    //LogWarn("ID of the gameobject not on the stack is %d and x is %f and y is %f ", gameobject->id,gameobject->location.x,gameobject->location.y);
     //Return userdata and address of gameobject
-    lua_pushlightuserdata(state, gameobject);
+    lua_pushlightuserdata(state, *gameobject);
     return 2;
 }
 
@@ -157,16 +151,17 @@ static int LuaGetGameObjectLocation(lua_State* state)
  * @return Pointer to a gameobject that the functions will use
  */
 static GameObject* CheckGameObject (lua_State *state) {
-      void* gameobject = luaL_checkudata(state, 1, "Lua.GameObject");
+
+      GameObject** gameobject = (GameObject**)luaL_checkudata(state, 1, "Lua.GameObject");
       luaL_argcheck(state, gameobject != NULL, 1, "`gameobject' expected");
-      GameObject** go = (GameObject**) gameobject;
       //return (GameObject *) gameobject;
-      return *go;
+      return *gameobject;
     }
 
 
 static int initialize(lua_State* state)
 {
+    luaL_newmetatable(state, "Lua.GameObject");
     //lua stack: aux table, prv table
 
     //Create our functions we are linking
@@ -187,9 +182,10 @@ static int initialize(lua_State* state)
     lua_pushvalue(state, 1);
     //Store the GameobjectAux table as a reference in the Lua ref table so that we can reference it later
     LUA_GAMEOBJECT_AUX_TABLE_REF = luaL_ref(state, LUA_REGISTRYINDEX);
+    LogWarn("Table ref is %d, and 0",LUA_GAMEOBJECT_AUX_TABLE_REF);
     //It is popped off now?
     //Push the table on top of the stack "prv table"
-    lua_pushvalue(state, 1);
+    lua_pushvalue(state, -1);
     luaL_setfuncs(state, gameobject_methods, 0);
     //Tell lua we are returning one thing (the table with the functions)
     return 1;
@@ -243,14 +239,22 @@ int RunLuaScript(struct lua_State* state)
 
     }
 //        //Get the string from the stack
-//    GameObject* created_object = (GameObject*)lua_topointer(state, -1);
-//    LogWarn("Gameobject id is %d ",created_object->id);
+    GameObject* created_object = (GameObject*)lua_topointer(state, -1);
+    gameobject_array[0] = created_object;
+    LogWarn("Gameobject id is %d ",created_object->id);
     return 1;
 
 }
 
 void UpdateAllGameObjects(struct lua_State* state)
 {
+    GameObject* gameobject = gameobject_array[0];
+    lua_rawgeti(state, LUA_REGISTRYINDEX, LUA_GAMEOBJECT_AUX_TABLE_REF);
+    lua_getfield(state, -1, "start_gameobject");
+    lua_pushlightuserdata(state, gameobject);
+    if(lua_pcall(state,1,1,0) != LUA_OK)
+        LogWarn("Error3k: %s", lua_tostring(state, -1));
+
     return;
 
 }
