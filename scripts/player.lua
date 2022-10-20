@@ -19,6 +19,7 @@ function NewPlayer(name)
 end
 
 function Player:Start()
+    gameobject_x = self:x(self)
     print('Lua Start function.. called from gameobject')
 end
 
