@@ -21,7 +21,7 @@ end
 
 function Player:Start()
     gameobject_x = self:x()
-    print('Start x is '..gameobject_x)
+    print('Start x is '..gameobject_x..' and the name is '..self.name)
 end
 
 
