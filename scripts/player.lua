@@ -20,7 +20,7 @@ function NewPlayer(name)
 end
 
 function Player:Start()
-    gameobject_x = self:x(self)
+    gameobject_x = self:x()
     print('Start x is '..gameobject_x)
 end
 
