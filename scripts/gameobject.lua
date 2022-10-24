@@ -21,15 +21,31 @@ function GameObject:x()
     return x
 end
 
+--Sets the X value of a gameobject.
+function GameObject:set_x(x)
+    prv.SetX(x)
+end
+
 --Gets the Y value of a gameobject
 function GameObject:y()
     local x = prv.Y(self.userdata)
     return x
 end
 
+--Sets the X value of a gameobject.
+function GameObject:set_y(y)
+    prv.SetY(self.userdata, y)
+end
+
 function GameObject:location()
     local x,y =  prv.Location()
     return x,y
+end
+
+function GameObject:set_location(x,y)
+    local x_val = x or 0
+    local y_val = y or 0
+    prv.SetLocation(self.userdata, x_val,y_val)
 end
 
 --The function that is called when a gameobject is started, this should be overrode if a gameobject needs to update.
