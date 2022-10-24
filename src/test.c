@@ -102,7 +102,6 @@ int main(int argc, char **argv)
             ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 0,0,0,0);
         SDL_RenderClear(world->graphics->game_renderer);
-        DrawAllGameObjects(world->global_lua_state_ptr);
         SDL_RenderPresent(world->graphics->game_renderer);
     } 
     if(debug_window_created)

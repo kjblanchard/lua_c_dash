@@ -3,26 +3,13 @@
 #include <lauxlib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
-//Drawing temporary
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_timer.h>
-#include <string.h>
-#include "SDL2/SDL_events.h"
-#include "SDL2/SDL_keycode.h"
-#include "SDL2/SDL_video.h"
-#include "../core/world.h"
-#include "../core/graphics_device.h"
-#include "../input/controller.h"
 
 GameObject* gameobject_array[10];
-static int LuaCheckIfButtonPressed(lua_State* state);
-static int LuaCheckIfButtonHeld(lua_State* state);
-static int LuaCheckIfButtonReleased(lua_State* state);
+
 static int LuaGetX(lua_State* state);
 static int LuaSetX(lua_State* state);
 static int LuaGetY(lua_State* state);
@@ -32,27 +19,6 @@ static int LUA_GAMEOBJECT_AUX_TABLE_REF = 0;
 
 static GameObject* CheckGameObject (lua_State *state);
 
-static int LuaCheckIfButtonPressed(lua_State* state)
-{
-    GameObject* gameobject = CheckGameObject(state);
-    int button = luaL_checknumber(state, 2);
-    lua_pushboolean(state, IsControllerButtonPressed(gameobject->controller, button));
-    return 1;
-}
-static int LuaCheckIfButtonHeld(lua_State* state)
-{
-    GameObject* gameobject = CheckGameObject(state);
-    int button = luaL_checknumber(state, 2);
-    lua_pushboolean(state, IsControllerButtonHeld(gameobject->controller, button));
-    return 1;
-}
-static int LuaCheckIfButtonReleased(lua_State* state)
-{
-    GameObject* gameobject = CheckGameObject(state);
-    int button = luaL_checknumber(state, 2);
-    lua_pushboolean(state, IsControllerButtonReleased(gameobject->controller, button));
-    return 1;
-}
 static int LuaGetX(lua_State* state)
 {
     GameObject* gameobject = CheckGameObject(state);
@@ -143,6 +109,16 @@ static int LuaGetGameObjectLocation(lua_State* state)
     lua_pushnumber(state, gameobject->location.y);
     return 2;
 }
+
+static int LuaSetGameObjectLocation(lua_State* state)
+{
+    GameObject* gameobject = CheckGameObject(state);
+    int x = luaL_checknumber(state, 2);
+    int y = luaL_checknumber(state, 3);
+    Vector2 new_vector2 = CreateVector2(x,y);
+    gameobject->location = new_vector2;
+    return 0;
+}
 /**
  * @brief Checks to see if we passed in a proper gameobject userdata, and then returns a pointer to the gameobject.  Used in all gameobject functions lua calls
  *
@@ -169,9 +145,7 @@ static int initialize(lua_State* state)
         {"Create", LuaCreateGameObject},
         {"Id", LuaGetGameObjectId},
         {"Location", LuaGetGameObjectLocation},
-        {"ButtonPressed", LuaCheckIfButtonPressed},
-        {"ButtonHeld", LuaCheckIfButtonHeld},
-        {"ButtonReleased", LuaCheckIfButtonReleased},
+        {"SetLocation",LuaSetGameObjectLocation},
         {"X", LuaGetX},
         {"Y", LuaGetY},
         {"SetX", LuaSetX},
@@ -258,11 +232,3 @@ void UpdateAllGameObjects(struct lua_State* state)
     return;
 
 }
-
-void DrawAllGameObjects(struct lua_State* state)
-{
-    return;
-}
-
-
-
