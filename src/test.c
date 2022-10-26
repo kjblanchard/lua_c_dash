@@ -18,6 +18,7 @@
 #include "input/player_controller.h"
 #include "sound/sound.h"
 #include "bindings/gameobject_lua.h"
+#include "bindings/controller_lua.h"
 #include "input/controller.h"
 
 static unsigned int debug_window_enabled = 0;
@@ -83,6 +84,7 @@ int main(int argc, char **argv)
     //Uint64 previous = SDL_GetTicks64();
     //double lag = 0.0;
     debug_window_created = InitDebugWindow();
+    RegisterControllerToLuaLibrary(world->global_lua_state_ptr);
     RunLuaScript(world->global_lua_state_ptr);
 
     SDL_RaiseWindow(GameWorld->graphics->game_window);

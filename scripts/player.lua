@@ -1,4 +1,5 @@
 local gameobject = require("gameobject")
+local controller = require("controller")
 
 --This sets the prototype for the Lua player class.  Put static variables inside of it.  We will set all the variables in the new function
 Player = {
@@ -14,6 +15,7 @@ function NewPlayer(name)
     local ptr
     --Create the gameobject from C and attach it to this guy so that we can reference it from lua for future C function calls.
     player.gameobject, ptr = Create_gameobject(player,10,30,Player.start, Player.update)
+    player.controller = CreateController(player)
     --player.gameobject.x(player.gameobject)
     player.gameobject:x()
     print("Name is "..player.name)
@@ -23,12 +25,16 @@ function NewPlayer(name)
 end
 
 function Player:start()
-    local gameobject_x = self.gameobject:x()
-    print('Start x is '..gameobject_x..' and the name is '..self.name)
+    --local gameobject_x = self.gameobject:x()
+    if self.controller:ButtonPressed(controller.ButtonNumbers.A)
+        then
+        print("Button A is pressed")
+    end
+    --print('Start x is '..gameobject_x..' and the name is '..self.name)
 end
 
 function Player:update()
-    print('Updating...')
+    --print('Updating...')
 end
 
 

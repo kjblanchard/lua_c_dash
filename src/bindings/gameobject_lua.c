@@ -2,8 +2,6 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
@@ -51,22 +49,6 @@ static int LuaSetY(lua_State* state)
 }
 static int LuaSetY(lua_State* state);
 
-static int setLuaPath( lua_State* L, const char* path )
-{
-    int value = lua_getglobal( L, "package" );
-    if(value == LUA_TNIL)
-        LogWarn("Borked");
-    lua_getfield( L, -1, "path" ); // get field "path" from table at top of stack (-1)
-    const char* current_path = lua_tostring( L, -1 ); // grab path string from top of stack
-    size_t full_str_len =  strlen(current_path) + strlen(path) +2;
-    char full_str[full_str_len];
-    sprintf(full_str,"%s;%s",current_path,path);
-    lua_pop( L, 1 ); // get rid of the string on the stack we just pushed on line 5
-    lua_pushstring( L, full_str ); // push the new one
-    lua_setfield( L, -2, "path" ); // set the field "path" in table at -2 with value at top of stack
-    lua_pop( L, 1 ); // get rid of package table from top of stack
-    return 0; // all done!
-}
 /**
  * @brief Function to create a gameobject, meant to be called from lua
  *
@@ -192,8 +174,6 @@ static int RegisterGameObjectToLuaLibrary(struct lua_State* state)
 
 int RunLuaScript(struct lua_State* state)
 {
-    luaL_openlibs(state);
-    setLuaPath(state, "./scripts/?.lua;");
     RegisterGameObjectToLuaLibrary(state);
     //Opens all the libraries, this is needed if we need to print something in lua.
     //Load the temp script file, and make sure it works.
