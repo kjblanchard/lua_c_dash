@@ -1,6 +1,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <string.h>
 #include "controller_lua.h"
 #include "../input/controller.h"
 #include "../debug/debug.h"
@@ -39,12 +40,23 @@ static int LuaCheckIfButtonReleased(lua_State* state)
     return 1;
 }
 
+static int LuaCreateController(lua_State* state)
+{
+    Controller** controller_ptr_ptr = (Controller **)lua_newuserdata(state, sizeof(Controller*));
+    luaL_getmetatable(state, "Lua.Controller");
+    lua_setmetatable(state, -2);
+    Controller* controller = CreateController(ControllerType_Player);
+    *controller_ptr_ptr = controller;
+    return 1;
+}
+
 static int InitializeLuaController(lua_State* state)
 {
     //lua stack: aux table, prv table
     luaL_newmetatable(state, "Lua.Controller");
     static const struct luaL_Reg gameobject_methods [] = {
         {"CheckIfButtonPressed", LuaCheckIfButtonPressed},
+        {"CreateController", LuaCreateController},
         {"CheckIfButtonReleased", LuaCheckIfButtonReleased},
         {"CheckIfButtonHeld", LuaCheckIfButtonHeld},
         {NULL, NULL}
@@ -63,7 +75,27 @@ static int luaopen_Controller(struct lua_State* state)
     return 1;
 }
 
+//TODO this needs to move into it's own file or something.
+static int setLuaPath( lua_State* L, const char* path )
+{
+    int value = lua_getglobal( L, "package" );
+    if(value == LUA_TNIL)
+        LogWarn("Borked");
+    lua_getfield( L, -1, "path" ); // get field "path" from table at top of stack (-1)
+    const char* current_path = lua_tostring( L, -1 ); // grab path string from top of stack
+    size_t full_str_len =  strlen(current_path) + strlen(path) +2;
+    char full_str[full_str_len];
+    sprintf(full_str,"%s;%s",current_path,path);
+    lua_pop( L, 1 ); // get rid of the string on the stack we just pushed on line 5
+    lua_pushstring( L, full_str ); // push the new one
+    lua_setfield( L, -2, "path" ); // set the field "path" in table at -2 with value at top of stack
+    lua_pop( L, 1 ); // get rid of package table from top of stack
+    return 0; // all done!
+}
+
 void RegisterControllerToLuaLibrary(struct lua_State* state)
 {
+    luaL_openlibs(state);
+    setLuaPath(state, "./scripts/?.lua;");
     luaL_requiref(state, "Controller", luaopen_Controller, 0);
 }
