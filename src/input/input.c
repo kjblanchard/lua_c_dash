@@ -2,7 +2,6 @@
 #include <SDL2/SDL_keyboard.h>
 #include "input.h"
 
-
 static void InitializeKeyboardStateArrays();
 static uint8_t current_keyboard_state[SDL_NUM_SCANCODES];
 static uint8_t previous_keyboard_state[SDL_NUM_SCANCODES];
@@ -40,4 +39,3 @@ void UpdateInputKeyboardStates()
     memcpy(previous_keyboard_state, current_keyboard_state, sizeof(Uint8) * SDL_NUM_SCANCODES);
     memcpy(current_keyboard_state, SDL_GetKeyboardState(NULL), sizeof(Uint8) * SDL_NUM_SCANCODES);
 }
-

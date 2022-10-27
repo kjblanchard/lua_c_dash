@@ -15,7 +15,6 @@ struct lua_State;
  *
  * @param state The lua state to load this into
  *
- * @return 
+ * @return
  */
-void RegisterControllerToLuaLibrary(struct lua_State* state);
-
+void RegisterControllerToLuaLibrary(struct lua_State *state);

@@ -10,13 +10,13 @@
 
 typedef struct Stack
 {
-    int* data;
+    int *data;
     int capacity;
     int size;
 
 } Stack;
 
-Stack* CreateStack(int capacity);
-int PopStack(Stack* stack);
-void PushStack(Stack* stack, int item);
-void DestroyStack(Stack* stack);
+Stack *CreateStack(int capacity);
+int PopStack(Stack *stack);
+void PushStack(Stack *stack, int item);
+void DestroyStack(Stack *stack);

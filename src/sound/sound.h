@@ -41,7 +41,7 @@ int UnPauseBgm();
  */
 int PlaySfxOneShot(int sfx_number, float volume);
 /**
- * @brief Preloads a sfx sound.  
+ * @brief Preloads a sfx sound.
  *
  * @param sfx_number the sfx number to load.
  *
@@ -64,4 +64,3 @@ void UpdateSound();
  * @brief Closes openal and destroys all bgm and sfx.
  */
 void CloseSound();
-

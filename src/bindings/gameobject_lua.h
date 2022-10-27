@@ -9,7 +9,6 @@
 
 struct lua_State;
 
-
 /**
  * @brief Creates a gameobject and calls its start function
  *
@@ -17,7 +16,6 @@ struct lua_State;
  *
  * @return  the lua reference to the function
  */
-int RunLuaScript(struct lua_State* state);
+int RunLuaScript(struct lua_State *state);
 
-
-void UpdateAllGameObjects(struct lua_State* state);
+void UpdateAllGameObjects(struct lua_State *state);

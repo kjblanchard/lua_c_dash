@@ -9,7 +9,6 @@
 #include "../base/vector2.h"
 struct Controller;
 
-
 /**
  * @brief The base object of everything in the engine.
  */
@@ -24,8 +23,8 @@ typedef struct GameObject
      */
     Vector2 location;
 
-    //Temporary values for testing
-    struct Controller* controller;
+    // Temporary values for testing
+    struct Controller *controller;
 
 } GameObject;
 /**
@@ -36,12 +35,12 @@ typedef struct GameObject
  *
  * @return An initialized gameobject.
  */
-GameObject* CreateGameObject(Vector2 location);
+GameObject *CreateGameObject(Vector2 location);
 
-void PrintGameObjectId(GameObject* gameobject);
+void PrintGameObjectId(GameObject *gameobject);
 /**
  * @brief Cleans up a gameobject for you.
  *
  * @param gameobject The gameobject to destroy.
  */
-void DestroyGameObject(GameObject* gameobject);
+void DestroyGameObject(GameObject *gameobject);

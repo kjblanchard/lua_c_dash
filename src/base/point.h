@@ -8,7 +8,7 @@
 /**
  * @brief A point is a simple data container holding two ints, an x value and a y value.
  */
-typedef struct Point 
+typedef struct Point
 {
     int x;
     int y;
@@ -70,4 +70,3 @@ inline Point AddPoint(Point lhs, Point rhs)
 }
 
 #endif
-

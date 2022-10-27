@@ -4,13 +4,13 @@
 #include "../debug/debug.h"
 #include "../input/controller.h"
 
-//static unsigned int current_id = 0;
+// static unsigned int current_id = 0;
 //
 
-GameObject* CreateGameObject(Vector2 location)
+GameObject *CreateGameObject(Vector2 location)
 {
-    GameObject* gameobject = malloc(sizeof(*gameobject));
-    //gameobject->id = current_id++;
+    GameObject *gameobject = malloc(sizeof(*gameobject));
+    // gameobject->id = current_id++;
     gameobject->id = 30;
     gameobject->location = location;
     gameobject->controller = CreateController(ControllerType_Player);
@@ -18,9 +18,9 @@ GameObject* CreateGameObject(Vector2 location)
     return gameobject;
 }
 
-void PrintGameObjectId(GameObject* gameobject)
+void PrintGameObjectId(GameObject *gameobject)
 {
-    if(!gameobject)
+    if (!gameobject)
     {
         LogWarn("This gameobject doesn't exist");
         return;
@@ -28,10 +28,10 @@ void PrintGameObjectId(GameObject* gameobject)
     LogInfo("The gameobject you passed in has the id of %d", gameobject->id);
 }
 
-void DestroyGameObject(GameObject* gameobject)
+void DestroyGameObject(GameObject *gameobject)
 {
     DestroyController(gameobject->controller);
     free(gameobject);
-    //TODO release the lua integer ref so it can be reused again.
+    // TODO release the lua integer ref so it can be reused again.
     gameobject = NULL;
 }

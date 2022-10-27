@@ -8,6 +8,7 @@ local umeta = {}
 --Use the GameObject to look things up.
 Controller.__index = Controller
 
+--The button numbers mapped to a C enum, so that we can easily reference them.
 Controller.ButtonNumbers = {
     Up = 1,
     Right = 2,
@@ -21,22 +22,28 @@ Controller.ButtonNumbers = {
     Select = 10
 }
 
+---Checks to see if a button is pressed
+---@param button_number integer integer corresponding to a button pressed
+---@return boolean if the button is pressed
 function Controller:ButtonPressed(button_number)
-    local pressed = prv.CheckIfButtonPressed(self.userdata, button_number)
-    return pressed
+    return prv.CheckIfButtonPressed(self.userdata, button_number)
 end
 
+---Checks to see if a button is released
+---@param button_number integer integer corresponding to a button pressed
+---@return boolean if the button is held
 function Controller:ButtonReleased(button_number)
-    local pressed = prv.CheckIfButtonReleased(self.userdata, button_number)
-    return pressed
+    return prv.CheckIfButtonReleased(self.userdata, button_number)
 end
 
+---Checks to see if a button is held
+---@param button_number integer Int corresponding to a c enum to button pressed
+---@return boolean if the button is held
 function Controller:ButtonHeld(button_number)
-    local pressed = prv.CheckIfButtonHeld(self.userdata, button_number)
-    return pressed
+    return prv.CheckIfButtonHeld(self.userdata, button_number)
 end
 
---global functions, like creating this object
+--Create a controller userdata, should be used inside of a lua object so that it can be properly deleted
 function CreateController(lua_obj)
     --TODO add in components in gameobject, which you would just add it in here.
     local controller  = {}
