@@ -24,24 +24,23 @@
 static unsigned int debug_window_enabled = 0;
 static unsigned int debug_window_created = 0;
 
-
 static void ProcessInput()
 {
     SDL_Event sdlEvent;
-    if(debug_window_created)
+    if (debug_window_created)
         ProcessDebugWindowInputBegin();
     while (SDL_PollEvent(&sdlEvent) != 0)
     {
-        if(debug_window_created && debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
+        if (debug_window_created && debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
         {
-            if(sdlEvent.type == SDL_KEYDOWN && (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE || sdlEvent.key.keysym.sym == SDLK_ESCAPE))
+            if (sdlEvent.type == SDL_KEYDOWN && (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE || sdlEvent.key.keysym.sym == SDLK_ESCAPE))
             {
                 debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                 ToggleDebugWindow(debug_window_enabled);
             }
             else if (sdlEvent.type == SDL_WINDOWEVENT)
             {
-                if(sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+                if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
                 {
                     debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                     ToggleDebugWindow(debug_window_enabled);
@@ -65,24 +64,22 @@ static void ProcessInput()
             }
         }
         else if (sdlEvent.type == SDL_WINDOWEVENT)
-            if(sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+            if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
                 GameWorld->is_running = 0;
     }
 
-    if(debug_window_created)
+    if (debug_window_created)
         ProcessDebugWindowInputEnd();
     UpdateInputKeyboardStates();
 }
 
-
-
 int main(int argc, char **argv)
 {
-    World* world = CreateWorld();
+    World *world = CreateWorld();
     assert(world);
     InitializeDebugLogFile();
-    //Uint64 previous = SDL_GetTicks64();
-    //double lag = 0.0;
+    // Uint64 previous = SDL_GetTicks64();
+    // double lag = 0.0;
     debug_window_created = InitDebugWindow();
     RegisterControllerToLuaLibrary(world->global_lua_state_ptr);
     RunLuaScript(world->global_lua_state_ptr);
@@ -92,21 +89,21 @@ int main(int argc, char **argv)
     InitializeInput();
     InitializeSound();
     PlayBgm(0, 0.3f);
-    while (world->is_running) 
+    while (world->is_running)
     {
-        //Uint64 current = SDL_GetTicks64();
-        //Uint64 elapsed = current - previous;
-        //previous = current;
+        // Uint64 current = SDL_GetTicks64();
+        // Uint64 elapsed = current - previous;
+        // previous = current;
         ProcessInput();
         UpdateSound();
         UpdateAllGameObjects(world->global_lua_state_ptr);
-        if(debug_window_created && debug_window_enabled)
+        if (debug_window_created && debug_window_enabled)
             ProcessDebugWindowGraphics();
-        SDL_SetRenderDrawColor(world->graphics->game_renderer, 0,0,0,0);
+        SDL_SetRenderDrawColor(world->graphics->game_renderer, 0, 0, 0, 0);
         SDL_RenderClear(world->graphics->game_renderer);
         SDL_RenderPresent(world->graphics->game_renderer);
-    } 
-    if(debug_window_created)
+    }
+    if (debug_window_created)
         ShutdownDebugWindow();
 
     SDL_DestroyRenderer(world->graphics->game_renderer);
@@ -118,4 +115,3 @@ int main(int argc, char **argv)
     SDL_Quit();
     return 0;
 }
-

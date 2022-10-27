@@ -1,12 +1,12 @@
 #pragma once
 #include <vorbis/vorbisfile.h>
-#include "al.h"
 
-typedef struct Sg_Loaded_Sfx{
+typedef struct Sg_Loaded_Sfx
+{
     ALsizei size;
     ALenum format;
     long sample_rate;
-    short* sound_data;
+    short *sound_data;
 
 } Sg_Loaded_Sfx;
 
@@ -25,7 +25,7 @@ int InitializeAl();
  *
  * @return 1 on Success, 0 on failure.
  */
-int PlayBgmAl(const char* filename, double* loop_begin, double* loop_end, float volume);
+int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float volume);
 int StopBgmAl();
 /**
  * @brief Pauses the playing bgm_player.
@@ -46,7 +46,7 @@ int UnpauseBgmAl();
  *
  * @return A Sg_loaded_Sfx, that has the sound_data within it.
  */
-Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
+Sg_Loaded_Sfx *LoadSfxFileAl(const char *filename);
 /**
  * @brief Properly unloads a loaded sfx files memory.
  *
@@ -54,8 +54,8 @@ Sg_Loaded_Sfx* LoadSfxFileAl(const char *filename);
  *
  * @return 1 if successful, 0 if failed.
  */
-int CloseSfxFileAl(Sg_Loaded_Sfx* loaded_sfx);
-int PlaySfxAl(Sg_Loaded_Sfx* sound_file, float volume);
+int CloseSfxFileAl(Sg_Loaded_Sfx *loaded_sfx);
+int PlaySfxAl(Sg_Loaded_Sfx *sound_file, float volume);
 /**
  * @brief Updates the openal sound system.
  */
@@ -66,4 +66,3 @@ void UpdateAl();
  * @return 1 on Success, 0 on failure.
  */
 int CloseAl();
-

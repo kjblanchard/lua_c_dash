@@ -40,4 +40,3 @@ int IsKeyJustReleased(const SDL_Scancode key);
  * @brief Gets the current keyboard states, and loads the previous keyboard states.  This should be called every update frame after events are processed.
  */
 void UpdateInputKeyboardStates();
-

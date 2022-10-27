@@ -3,17 +3,17 @@
 #include "world.h"
 #include "graphics_device.h"
 
-World* GameWorld = NULL;
+World *GameWorld = NULL;
 
-World* CreateWorld()
+World *CreateWorld()
 {
-    if(GameWorld)
+    if (GameWorld)
         return GameWorld;
-    World* world_ptr = NULL;
-    if(world_ptr != NULL)
+    World *world_ptr = NULL;
+    if (world_ptr != NULL)
         printf("dead");
-    world_ptr = (World* )malloc(sizeof(World));
-    lua_State*L = luaL_newstate();
+    world_ptr = (World *)malloc(sizeof(World));
+    lua_State *L = luaL_newstate();
     world_ptr->global_lua_state_ptr = L;
     GameWorld = world_ptr;
     InitializeSdl();
@@ -28,12 +28,12 @@ int InitializeSdl()
     if (sdl_video_init_result != 0)
     {
         return 0;
-        printf("Error loading sdl, %s",SDL_GetError());
+        printf("Error loading sdl, %s", SDL_GetError());
     }
     return 1;
 }
 
-void DestroyWorld(World* world)
+void DestroyWorld(World *world)
 {
     lua_close(world->global_lua_state_ptr);
     world->global_lua_state_ptr = NULL;

@@ -26,11 +26,16 @@ end
 
 function Player:start()
     --local gameobject_x = self.gameobject:x()
-    if self.controller:ButtonPressed(controller.ButtonNumbers.A)
-        then
-        print("Button A is pressed")
+    for enum_key,enum_value in pairs(controller.ButtonNumbers)
+    do
+        if self.controller:ButtonPressed(enum_value) then
+            print('Button '..enum_key..' was pressed')
+        elseif self.controller:ButtonHeld(enum_value) then
+            print('Button '..enum_key..' was held')
+        elseif self.controller:ButtonReleased(enum_value) then
+            print('Button '..enum_key..' was released')
+        end
     end
-    --print('Start x is '..gameobject_x..' and the name is '..self.name)
 end
 
 function Player:update()

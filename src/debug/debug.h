@@ -11,7 +11,6 @@
 struct GraphicsDevice;
 union SDL_Event;
 
-
 /**
  * @brief The different log levels.  Mostly used internally.
  *
@@ -25,14 +24,14 @@ typedef enum LogLevel
     Sg_Debug_Error,
 } LogLevel;
 
-extern NuklearLabel* label_test;
+extern NuklearLabel *label_test;
 
 /**
  * @brief The debug window, and it's nuklear context
  */
 typedef struct DebugWindow
 {
-    struct GraphicsDevice* debug_graphics_device;
+    struct GraphicsDevice *debug_graphics_device;
     struct nk_context *ctx;
 
 } DebugWindow;
@@ -40,11 +39,11 @@ typedef struct DebugWindow
 /**
  * @brief The global debug_window, that has a graphics device and context.
  */
-extern DebugWindow* debug_window;
+extern DebugWindow *debug_window;
 /**
  * @brief The current games logging level, this should be set inside of lua.
  */
-extern LogLevel game_log_level ;
+extern LogLevel game_log_level;
 /**
  * @brief Opens and/or creates a file for debug logging.
  *
@@ -54,7 +53,7 @@ int InitializeDebugLogFile();
 /**
  * @brief Closes the open file for logging.
  *
- * @return 
+ * @return
  */
 int CloseDebugLogFile();
 /**
@@ -89,12 +88,12 @@ void LogError(const char *format, ...);
 /**
  * @brief Initializes the Debug window and renderer to be used
  *
- * @return 
+ * @return
  */
 int InitDebugWindow();
 void ToggleDebugWindow(int enabled);
 void ProcessDebugWindowInputBegin();
-void ProcessDebugWindowInput(union SDL_Event* event);
+void ProcessDebugWindowInput(union SDL_Event *event);
 void ProcessDebugWindowInputEnd();
 void ProcessDebugWindowGraphics();
 void ShutdownDebugWindow();

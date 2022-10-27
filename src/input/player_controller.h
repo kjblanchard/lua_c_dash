@@ -30,7 +30,7 @@ typedef struct KeyboardKeybinds
 typedef struct PlayerController
 {
     unsigned char player_number;
-    KeyboardKeybinds* keyboard_controls;
+    KeyboardKeybinds *keyboard_controls;
 
 } PlayerController;
 /**
@@ -40,13 +40,13 @@ typedef struct PlayerController
  *
  * @return a new player controller
  */
-PlayerController* CreatePlayerController(unsigned char player_number);
+PlayerController *CreatePlayerController(unsigned char player_number);
 /**
  * @brief Destroys a player controller
  *
  * @param controller The controller to destroy.
  */
-void DestroyPlayerController(PlayerController* controller);
+void DestroyPlayerController(PlayerController *controller);
 /**
  * @brief Checks to see if a player controller button is pressed, used by the parent controller.
  *
@@ -55,7 +55,7 @@ void DestroyPlayerController(PlayerController* controller);
  *
  * @return 1 if true, 0 if not.
  */
-int IsPlayerControllerButtonPressed(PlayerController* player_controller, ControllerButtons button);
+int IsPlayerControllerButtonPressed(PlayerController *player_controller, ControllerButtons button);
 /**
  * @brief Checks to see if a player controllers button is just released, used by the parent controller
  *
@@ -64,7 +64,7 @@ int IsPlayerControllerButtonPressed(PlayerController* player_controller, Control
  *
  * @return 1 if true, 0 if not.
  */
-int IsPlayerControllerButtonReleased(PlayerController* player_controller, ControllerButtons button);
+int IsPlayerControllerButtonReleased(PlayerController *player_controller, ControllerButtons button);
 /**
  * @brief Checks to see if a player controllers button is being held, used by the parent controller
  *
@@ -73,4 +73,4 @@ int IsPlayerControllerButtonReleased(PlayerController* player_controller, Contro
  *
  * @return 1 if true, 0 if not
  */
-int IsPlayerControllerButtonHeld(PlayerController* player_controller, ControllerButtons button);
+int IsPlayerControllerButtonHeld(PlayerController *player_controller, ControllerButtons button);

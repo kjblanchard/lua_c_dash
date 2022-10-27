@@ -14,9 +14,10 @@ struct GraphicsDevice;
 /**
  * @brief World contains the graphics and the global lua state that can be referenced by anyone.
  */
-typedef struct World{
-    struct lua_State* global_lua_state_ptr;
-    struct GraphicsDevice* graphics;
+typedef struct World
+{
+    struct lua_State *global_lua_state_ptr;
+    struct GraphicsDevice *graphics;
     unsigned char is_running;
 
 } World;
@@ -24,21 +25,21 @@ typedef struct World{
 /**
  * @brief Pointer to the Gameworld.
  */
-extern World* GameWorld;
+extern World *GameWorld;
 /**
  * @brief Creates the gameworld, and initializes the global gameworkd pointer.
  *
- * @return 
+ * @return
  */
-World* CreateWorld();
+World *CreateWorld();
 /**
  * @brief Loads SDL and it's components.
  *
- * @return 
+ * @return
  */
 int InitializeSdl();
 /**
  * @brief Destroy the world.
  *
  */
-void DestroyWorld(World* world);
+void DestroyWorld(World *world);

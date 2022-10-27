@@ -37,8 +37,8 @@ typedef struct Controller
      */
     union internal_controller
     {
-        struct PlayerController* player_controller;
-        struct AiController* ai_controller;
+        struct PlayerController *player_controller;
+        struct AiController *ai_controller;
 
     } internal_controller;
 
@@ -50,13 +50,13 @@ typedef struct Controller
  *
  * @return A new controller, or NULL if error.
  */
-Controller* CreateController(ControllerTypes controller_type);
+Controller *CreateController(ControllerTypes controller_type);
 /**
  * @brief Destroys a controller
  *
  * @param controller The controller to destroy.
  */
-void DestroyController(Controller* controller);
+void DestroyController(Controller *controller);
 /**
  * @brief Checks to see if a Controller button is just pressed on a controller.
  *
@@ -65,7 +65,7 @@ void DestroyController(Controller* controller);
  *
  * @return 1 if pressed, 0 if not.
  */
-int IsControllerButtonPressed(Controller* controller, ControllerButtons button);
+int IsControllerButtonPressed(Controller *controller, ControllerButtons button);
 /**
  * @brief Checks to see if a Controller button is Pressed or held on a controller
  *
@@ -74,7 +74,7 @@ int IsControllerButtonPressed(Controller* controller, ControllerButtons button);
  *
  * @return 1 if pressed, 0 if not.
  */
-int IsControllerButtonDown(Controller* controller, ControllerButtons button);
+int IsControllerButtonDown(Controller *controller, ControllerButtons button);
 /**
  * @brief Checks to see if a controller button is just released on a controller.
  *
@@ -83,7 +83,7 @@ int IsControllerButtonDown(Controller* controller, ControllerButtons button);
  *
  * @return 1 if pressed, 0 if not.
  */
-int IsControllerButtonReleased(Controller* controller, ControllerButtons button);
+int IsControllerButtonReleased(Controller *controller, ControllerButtons button);
 /**
  * @brief  Checks to see if a button is being held on a controller.
  *
@@ -92,4 +92,4 @@ int IsControllerButtonReleased(Controller* controller, ControllerButtons button)
  *
  * @return 1 if pressed, 0 if not
  */
-int IsControllerButtonHeld(Controller* controller, ControllerButtons button);
+int IsControllerButtonHeld(Controller *controller, ControllerButtons button);
