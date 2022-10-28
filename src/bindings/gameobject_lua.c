@@ -2,9 +2,14 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
+
+#include <SDL2/SDL_render.h>
+#include "../core/world.h"
+#include "../core//graphics_device.h"
 
 GameObject *gameobject_array[10];
 
@@ -133,7 +138,6 @@ static int initialize(lua_State *state)
     lua_pushvalue(state, 1);
     // Store the GameobjectAux table as a reference in the Lua ref table so that we can reference it later
     LUA_GAMEOBJECT_AUX_TABLE_REF = luaL_ref(state, LUA_REGISTRYINDEX);
-    LogWarn("Table ref is %d, and 0", LUA_GAMEOBJECT_AUX_TABLE_REF);
     // It is popped off now?
     // Push the table on top of the stack "prv table"
     lua_pushvalue(state, -1);
@@ -193,14 +197,70 @@ int RunLuaScript(struct lua_State *state)
     return 1;
 }
 
-void UpdateAllGameObjects(struct lua_State *state)
+static void dumpstack (lua_State *L) {
+  int top=lua_gettop(L);
+  for (int i=1; i <= top; i++) {
+    printf("%d\t%s\t", i, luaL_typename(L,i));
+    switch (lua_type(L, i)) {
+      case LUA_TNUMBER:
+        printf("%g\n",lua_tonumber(L,i));
+        break;
+      case LUA_TSTRING:
+        printf("%s\n",lua_tostring(L,i));
+        break;
+      case LUA_TBOOLEAN:
+        printf("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
+        break;
+      case LUA_TNIL:
+        printf("%s\n", "nil");
+        break;
+      default:
+        printf("%p\n",lua_topointer(L,i));
+        break;
+    }
+  }
+}
+void StartAllGameObjects(struct lua_State *state)
 {
     GameObject *gameobject = gameobject_array[0];
     lua_rawgeti(state, LUA_REGISTRYINDEX, LUA_GAMEOBJECT_AUX_TABLE_REF);
     lua_getfield(state, -1, "start_gameobject");
     lua_pushlightuserdata(state, gameobject);
-    if (lua_pcall(state, 1, 1, 0) != LUA_OK)
+    if (lua_pcall(state, 1, 0, 0) != LUA_OK)
+    {
         LogWarn("Error3k: %s", lua_tostring(state, -1));
+        dumpstack(state);
+        exit(1);
 
-    return;
+    }
+    lua_pop(state, 1); // pop off rawgeti
+
+}
+
+void UpdateAllGameObjects(struct lua_State *state)
+{
+    GameObject *gameobject = gameobject_array[0];
+    lua_rawgeti(state, LUA_REGISTRYINDEX, LUA_GAMEOBJECT_AUX_TABLE_REF);
+    lua_getfield(state, -1, "update_gameobject");
+    lua_pushlightuserdata(state, gameobject);
+    if (lua_pcall(state, 1, 0, 0) != LUA_OK)
+    {
+        LogWarn("Error3k: %s", lua_tostring(state, -1));
+        dumpstack(state);
+        exit(1);
+
+    }
+    lua_pop(state, 1); // pop off rawgeti
+}
+
+void DrawAllGameObjects(struct lua_State *state)
+{
+    GameObject *gameobject = gameobject_array[0];
+    SDL_Rect char_rect;
+    SDL_SetRenderDrawColor(GameWorld->graphics->game_renderer, 255,255,255,255);
+    char_rect.x = gameobject->location.x;
+    char_rect.y = gameobject->location.y;
+    char_rect.w = char_rect.h = 32;
+    SDL_RenderDrawRect(GameWorld->graphics->game_renderer, &char_rect);
+
 }

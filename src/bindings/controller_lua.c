@@ -17,6 +17,7 @@ static Controller *CheckController(lua_State *state)
     return *controller;
 }
 
+
 static int LuaCheckIfButtonPressed(lua_State *state)
 {
     Controller *controller = CheckController(state);
@@ -63,7 +64,6 @@ static int InitializeLuaController(lua_State *state)
         {NULL, NULL}};
     lua_pushvalue(state, 1);
     LUA_CONTROLLER_AUX_TABLE_REF = luaL_ref(state, LUA_REGISTRYINDEX);
-    LogWarn("Table ref is %d, and 0", LUA_CONTROLLER_AUX_TABLE_REF);
     lua_pushvalue(state, -1);
     luaL_setfuncs(state, gameobject_methods, 0);
     return 1;

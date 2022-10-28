@@ -89,6 +89,7 @@ int main(int argc, char **argv)
     InitializeInput();
     InitializeSound();
     PlayBgm(0, 0.3f);
+    StartAllGameObjects(world->global_lua_state_ptr);
     while (world->is_running)
     {
         // Uint64 current = SDL_GetTicks64();
@@ -101,6 +102,7 @@ int main(int argc, char **argv)
             ProcessDebugWindowGraphics();
         SDL_SetRenderDrawColor(world->graphics->game_renderer, 0, 0, 0, 0);
         SDL_RenderClear(world->graphics->game_renderer);
+        DrawAllGameObjects(world->global_lua_state_ptr);
         SDL_RenderPresent(world->graphics->game_renderer);
     }
     if (debug_window_created)

@@ -14,32 +14,32 @@ function NewPlayer(name)
     setmetatable(player, Player)
     local ptr
     --Create the gameobject from C and attach it to this guy so that we can reference it from lua for future C function calls.
-    player.gameobject, ptr = Create_gameobject(player,10,30,Player.start, Player.update)
+    player.gameobject, ptr = Create_gameobject(player, 10, 30, Player.start, Player.update)
     player.controller = CreateController(player)
     --player.gameobject.x(player.gameobject)
     player.gameobject:x()
-    print("Name is "..player.name)
-
     --Return the gameobject pointer to C, so that we can use it.
     return ptr
 end
 
 function Player:start()
-    --local gameobject_x = self.gameobject:x()
-    for enum_key,enum_value in pairs(controller.ButtonNumbers)
-    do
-        if self.controller:ButtonPressed(enum_value) then
-            print('Button '..enum_key..' was pressed')
-        elseif self.controller:ButtonHeld(enum_value) then
-            print('Button '..enum_key..' was held')
-        elseif self.controller:ButtonReleased(enum_value) then
-            print('Button '..enum_key..' was released')
-        end
-    end
+    print('Starting player with name '..self.name)
 end
 
 function Player:update()
-    --print('Updating...')
+    local speed = 2
+    if self.controller:ButtonDown(controller.ButtonNumbers.Up) then
+        self.gameobject:add_y(-speed)
+    end
+    if self.controller:ButtonDown(controller.ButtonNumbers.Down) then
+        self.gameobject:add_y(speed)
+    end
+    if self.controller:ButtonDown(controller.ButtonNumbers.Right) then
+        self.gameobject:add_x(speed)
+    end
+    if self.controller:ButtonDown(controller.ButtonNumbers.Left) then
+        self.gameobject:add_x(-speed)
+    end
 end
 
 

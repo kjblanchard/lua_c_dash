@@ -18,4 +18,6 @@ struct lua_State;
  */
 int RunLuaScript(struct lua_State *state);
 
+void StartAllGameObjects(struct lua_State *state);
 void UpdateAllGameObjects(struct lua_State *state);
+void DrawAllGameObjects(struct lua_State *state);
