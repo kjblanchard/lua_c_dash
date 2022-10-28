@@ -43,6 +43,18 @@ function Controller:ButtonHeld(button_number)
     return prv.CheckIfButtonHeld(self.userdata, button_number)
 end
 
+---Checks to see if a button is held or pressed
+---@param button_number integer The button to check for
+---@return boolean if the button is held or pressed
+function Controller:ButtonDown(button_number)
+    local pressed = self:ButtonPressed(button_number)
+    if pressed
+        then
+        return pressed
+    end
+    return self:ButtonHeld(button_number)
+end
+
 --Create a controller userdata, should be used inside of a lua object so that it can be properly deleted
 function CreateController(lua_obj)
     --TODO add in components in gameobject, which you would just add it in here.

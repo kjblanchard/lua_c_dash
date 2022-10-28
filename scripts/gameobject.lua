@@ -21,20 +21,30 @@ function GameObject:x()
     return x
 end
 
+function GameObject:add_x(addition)
+    local current_x = prv.X(self.userdata)
+    self:set_x(current_x + addition)
+end
+
 --Sets the X value of a gameobject.
 function GameObject:set_x(x)
-    prv.SetX(x)
+    prv.SetX(self.userdata,x)
 end
 
 --Gets the Y value of a gameobject
 function GameObject:y()
-    local x = prv.Y(self.userdata)
-    return x
+    local y = prv.Y(self.userdata)
+    return y
 end
 
 --Sets the X value of a gameobject.
 function GameObject:set_y(y)
     prv.SetY(self.userdata, y)
+end
+
+function GameObject:add_y(addition)
+    local current_y = prv.Y(self.userdata)
+    self:set_y(current_y + addition)
 end
 
 function GameObject:location()
@@ -73,6 +83,11 @@ end
 function aux.start_gameobject(ptr)
     local gameobj = gameobjects[ptr]
     gameobj.gameobject.start(gameobj)
+end
+
+function aux.update_gameobject(ptr)
+    local gameobj = gameobjects[ptr]
+    gameobj.gameobject.update(gameobj)
 end
 
 
