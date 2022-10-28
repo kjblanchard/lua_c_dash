@@ -10,7 +10,7 @@ configure:
 	@cmake . -B build -D CMAKE_BUILD_TYPE=Debug
 
 windows:
-	@cmake . -B build -DCMAKE_PREFIX_PATH=/c/cmake/ -G'MinGW Makefiles'
+	cmake . -B build -D CMAKE_PREFIX_PATH=/c/cmake -G 'MinGW Makefiles'
 
 release:
 	@cmake . -B build -G Xcode  && cmake --build build --config Release
@@ -22,6 +22,7 @@ clean:
 	@ - rm -rf build
 
 rebuild: clean configure build install
+wrebuild: clean windows build install
 
 install:
 	@cmake --install build
