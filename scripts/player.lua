@@ -28,16 +28,16 @@ end
 
 function Player:update()
     local speed = 2
-    if self.controller:ButtonDown(controller.ButtonNumbers.Up) then
+    if self.controller:button_down(controller.ButtonNumbers.Up) then
         self.gameobject:add_y(-speed)
     end
-    if self.controller:ButtonDown(controller.ButtonNumbers.Down) then
+    if self.controller:button_down(controller.ButtonNumbers.Down) then
         self.gameobject:add_y(speed)
     end
-    if self.controller:ButtonDown(controller.ButtonNumbers.Right) then
+    if self.controller:button_down(controller.ButtonNumbers.Right) then
         self.gameobject:add_x(speed)
     end
-    if self.controller:ButtonDown(controller.ButtonNumbers.Left) then
+    if self.controller:button_down(controller.ButtonNumbers.Left) then
         self.gameobject:add_x(-speed)
     end
 end
