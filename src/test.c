@@ -14,6 +14,7 @@
 #include "debug/debug.h"
 #include "core/world.h"
 #include "input/controller_buttons.h"
+#include "utilities/lua.h"
 #include "input/input.h"
 #include "input/player_controller.h"
 #include "sound/sound.h"
@@ -78,6 +79,7 @@ int main(int argc, char **argv)
     World *world = CreateWorld();
     assert(world);
     InitializeDebugLogFile();
+    InitializeLua(world->global_lua_state_ptr);
     // Uint64 previous = SDL_GetTicks64();
     // double lag = 0.0;
     debug_window_created = InitDebugWindow();

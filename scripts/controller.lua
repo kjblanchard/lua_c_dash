@@ -1,10 +1,7 @@
-local initialize = require "Controller"
+local initialize_controller = require "Controller"
 local aux,prv = {},{}
 local Controller= {}
-prv = initialize(aux,prv)
---Userdata metatable.  Could be used to set the C userdata stuff in lua if we want.
-local umeta = {}
---umeta.__gc = prv.del
+prv = initialize_controller(aux,prv)
 --Use the GameObject to look things up.
 Controller.__index = Controller
 
@@ -25,37 +22,44 @@ Controller.ButtonNumbers = {
 ---Checks to see if a button is pressed
 ---@param button_number integer integer corresponding to a button pressed
 ---@return boolean if the button is pressed
-function Controller:ButtonPressed(button_number)
+function Controller:button_pressed(button_number)
     return prv.CheckIfButtonPressed(self.userdata, button_number)
 end
 
 ---Checks to see if a button is released
 ---@param button_number integer integer corresponding to a button pressed
 ---@return boolean if the button is held
-function Controller:ButtonReleased(button_number)
+function Controller:button_released(button_number)
     return prv.CheckIfButtonReleased(self.userdata, button_number)
 end
 
 ---Checks to see if a button is held
 ---@param button_number integer Int corresponding to a c enum to button pressed
 ---@return boolean if the button is held
-function Controller:ButtonHeld(button_number)
+function Controller:button_held(button_number)
     return prv.CheckIfButtonHeld(self.userdata, button_number)
 end
 
 ---Checks to see if a button is held or pressed
 ---@param button_number integer The button to check for
 ---@return boolean if the button is held or pressed
-function Controller:ButtonDown(button_number)
-    local pressed = self:ButtonPressed(button_number)
-    if pressed
-        then
+function Controller:button_down(button_number)
+    local pressed = self:button_pressed(button_number)
+    if pressed then
         return pressed
     end
-    return self:ButtonHeld(button_number)
+    return self:button_held(button_number)
 end
 
---Create a controller userdata, should be used inside of a lua object so that it can be properly deleted
+---Calls into C to release the controller data, this should be called before this object is destroyed fully.
+function Controller:destroy()
+    prv.DestroyController(self.userdata)
+
+end
+
+---Create controller userdata, so that we can use it in lua and C
+---@param lua_obj table The lua object that we are attaching this to (should be a gameobject)
+---@return table a new controller table.
 function CreateController(lua_obj)
     --TODO add in components in gameobject, which you would just add it in here.
     local controller  = {}

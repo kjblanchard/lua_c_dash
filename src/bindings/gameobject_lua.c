@@ -6,7 +6,7 @@
 #include "gameobject_lua.h"
 #include "../objects/gameobject.h"
 #include "../debug/debug.h"
-
+#include "../utilities/lua.h"
 #include <SDL2/SDL_render.h>
 #include "../core/world.h"
 #include "../core//graphics_device.h"
@@ -197,29 +197,6 @@ int RunLuaScript(struct lua_State *state)
     return 1;
 }
 
-static void dumpstack (lua_State *L) {
-  int top=lua_gettop(L);
-  for (int i=1; i <= top; i++) {
-    printf("%d\t%s\t", i, luaL_typename(L,i));
-    switch (lua_type(L, i)) {
-      case LUA_TNUMBER:
-        printf("%g\n",lua_tonumber(L,i));
-        break;
-      case LUA_TSTRING:
-        printf("%s\n",lua_tostring(L,i));
-        break;
-      case LUA_TBOOLEAN:
-        printf("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
-        break;
-      case LUA_TNIL:
-        printf("%s\n", "nil");
-        break;
-      default:
-        printf("%p\n",lua_topointer(L,i));
-        break;
-    }
-  }
-}
 void StartAllGameObjects(struct lua_State *state)
 {
     GameObject *gameobject = gameobject_array[0];
@@ -229,7 +206,7 @@ void StartAllGameObjects(struct lua_State *state)
     if (lua_pcall(state, 1, 0, 0) != LUA_OK)
     {
         LogWarn("Error3k: %s", lua_tostring(state, -1));
-        dumpstack(state);
+        DumpLuaStack(state);
         exit(1);
 
     }
@@ -246,7 +223,7 @@ void UpdateAllGameObjects(struct lua_State *state)
     if (lua_pcall(state, 1, 0, 0) != LUA_OK)
     {
         LogWarn("Error3k: %s", lua_tostring(state, -1));
-        dumpstack(state);
+        DumpLuaStack(state);
         exit(1);
 
     }
