@@ -15,4 +15,5 @@ typedef enum ControllerButtons
     ControllerButton_X,
     ControllerButton_Start,
     ControllerButton_Select,
+    ControllerButtons_Max
 } ControllerButtons;

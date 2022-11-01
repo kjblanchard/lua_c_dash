@@ -19,36 +19,37 @@ Controller.ButtonNumbers = {
     Select = 10
 }
 
----Checks to see if a button is pressed
----@param button_number integer integer corresponding to a button pressed
----@return boolean if the button is pressed
-function Controller:button_pressed(button_number)
-    return prv.CheckIfButtonPressed(self.userdata, button_number)
-end
+Controller.KeyStates = {
+    Pressed = 0,
+    Held = 1,
+    Released = 2
+}
 
----Checks to see if a button is released
----@param button_number integer integer corresponding to a button pressed
----@return boolean if the button is held
-function Controller:button_released(button_number)
-    return prv.CheckIfButtonReleased(self.userdata, button_number)
-end
+Controller.BindFunctions = {
+    [Controller.ButtonNumbers.Up] = {},
+    [Controller.ButtonNumbers.Right] = {},
+    [Controller.ButtonNumbers.Down] = {},
+    [Controller.ButtonNumbers.Left] = {},
+    [Controller.ButtonNumbers.Y] = {},
+    [Controller.ButtonNumbers.B] = {},
+    [Controller.ButtonNumbers.A] = {},
+    [Controller.ButtonNumbers.X] = {},
+    [Controller.ButtonNumbers.Start] = {},
+    [Controller.ButtonNumbers.Select] = {},
+}
 
----Checks to see if a button is held
----@param button_number integer Int corresponding to a c enum to button pressed
----@return boolean if the button is held
-function Controller:button_held(button_number)
-    return prv.CheckIfButtonHeld(self.userdata, button_number)
-end
+function Controller:update(lua_object)
+    while true do
+       local button, state = prv.HandleInput(self.userdata)
+       if button == nil then
+           print('Button is nil! should break')
+           break
+       end
+       print('Button is '..button..' and state is '..state)
+       self.BindFunctions[4](lua_object)
 
----Checks to see if a button is held or pressed
----@param button_number integer The button to check for
----@return boolean if the button is held or pressed
-function Controller:button_down(button_number)
-    local pressed = self:button_pressed(button_number)
-    if pressed then
-        return pressed
+
     end
-    return self:button_held(button_number)
 end
 
 ---Calls into C to release the controller data, this should be called before this object is destroyed fully.

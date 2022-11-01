@@ -10,9 +10,12 @@
  * @brief All of the buttons that can be pressed in the game.
  */
 #include "controller_buttons.h"
+#include "player_controller.h"
 
 struct PlayerController;
 struct AiController;
+struct KeyboardEvent;
+
 /**
  * @brief The types of controllers that we can create.
  */
@@ -57,39 +60,6 @@ Controller *CreateController(ControllerTypes controller_type);
  * @param controller The controller to destroy.
  */
 void DestroyController(Controller *controller);
-/**
- * @brief Checks to see if a Controller button is just pressed on a controller.
- *
- * @param controller The controller to check
- * @param button The button to check for
- *
- * @return 1 if pressed, 0 if not.
- */
-int IsControllerButtonPressed(Controller *controller, ControllerButtons button);
-/**
- * @brief Checks to see if a Controller button is Pressed or held on a controller
- *
- * @param controller The controller to check
- * @param button The button to check for
- *
- * @return 1 if pressed, 0 if not.
- */
-int IsControllerButtonDown(Controller *controller, ControllerButtons button);
-/**
- * @brief Checks to see if a controller button is just released on a controller.
- *
- * @param controller The controller to check
- * @param button The button to check
- *
- * @return 1 if pressed, 0 if not.
- */
-int IsControllerButtonReleased(Controller *controller, ControllerButtons button);
-/**
- * @brief  Checks to see if a button is being held on a controller.
- *
- * @param controller The controller to check
- * @param button The button to check
- *
- * @return 1 if pressed, 0 if not
- */
-int IsControllerButtonHeld(Controller *controller, ControllerButtons button);
+struct KeyboardEvent *PumpKeyboardEventController(Controller *controller);
+
+
