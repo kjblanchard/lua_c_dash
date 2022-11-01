@@ -40,6 +40,7 @@ typedef struct PlayerController
     KeyboardKeybinds *keyboard_controls;
     KeyboardEvent current_events[MAX_EVENTS];
     int current_number_of_events;
+    int current_number_buttons_down;
     int current_buttons_down[ControllerButtons_Max];
 
 } PlayerController;
