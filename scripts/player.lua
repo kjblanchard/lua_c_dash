@@ -4,6 +4,7 @@ local controller = require("controller")
 --This sets the prototype for the Lua player class.  Put static variables inside of it.  We will set all the variables in the new function
 Player = {
     name = '',
+    speed = 1
 }
 
 --Creates a new player object
@@ -24,22 +25,17 @@ end
 
 function Player:start()
     print('Starting player with name '..self.name)
+    self.controller.BindFunctions[4] = Player.move_left
+
 end
 
+function Player:move_left()
+    self.gameobject.add_x(self.gameobject, 2)
+end
+
+
 function Player:update()
-    local speed = 2
-    if self.controller:button_down(controller.ButtonNumbers.Up) then
-        self.gameobject:add_y(-speed)
-    end
-    if self.controller:button_down(controller.ButtonNumbers.Down) then
-        self.gameobject:add_y(speed)
-    end
-    if self.controller:button_down(controller.ButtonNumbers.Right) then
-        self.gameobject:add_x(speed)
-    end
-    if self.controller:button_down(controller.ButtonNumbers.Left) then
-        self.gameobject:add_x(-speed)
-    end
+    self.controller:update(self)
 end
 
 

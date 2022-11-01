@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "../debug/debug.h"
+#include "input.h"
 #include "controller.h"
 #include "player_controller.h"
 #include "ai_controller.h"
@@ -43,70 +44,20 @@ void DestroyController(Controller *controller)
     controller = NULL;
 }
 
-int IsControllerButtonPressed(Controller *controller, ControllerButtons button)
+KeyboardEvent *PumpKeyboardEventController(Controller *controller)
 {
     switch (controller->controller_type)
     {
     case ControllerType_Default:
-        LogWarn("Checking if button pressed on a Default typed controller");
-        return 0;
+        LogWarn("Trying to pump a controller with the type Default for some reason");
+        break;
     case ControllerType_Player:
-        return IsPlayerControllerButtonPressed(controller->internal_controller.player_controller, button);
+        return PopKeyboardEvent(controller->internal_controller.player_controller);
+        break;
     case ControllerType_Ai:
-        LogWarn("Checking if button pressed on a AI typed controller when it is not implemented");
-        return 0;
-    default:
-        return 0;
+        LogInfo("Controller type AI is not implemented");
+        break;
     }
-}
+    return NULL;
 
-int IsControllerButtonDown(Controller *controller, ControllerButtons button)
-{
-    switch (controller->controller_type)
-    {
-    case ControllerType_Default:
-        LogWarn("Checking if button pressed on a Default typed controller");
-        return 0;
-    case ControllerType_Player:
-        return IsPlayerControllerButtonPressed(controller->internal_controller.player_controller, button) || IsPlayerControllerButtonHeld(controller->internal_controller.player_controller, button);
-    case ControllerType_Ai:
-        LogWarn("Checking if button pressed on a AI typed controller when it is not implemented");
-        return 0;
-    default:
-        return 0;
-    }
-}
-
-int IsControllerButtonReleased(Controller *controller, ControllerButtons button)
-{
-    switch (controller->controller_type)
-    {
-    case ControllerType_Default:
-        LogWarn("Checking if button Released on a Default typed controller");
-        return 0;
-    case ControllerType_Player:
-        return IsPlayerControllerButtonReleased(controller->internal_controller.player_controller, button);
-    case ControllerType_Ai:
-        LogWarn("Checking if button Released on a AI typed controller when it is not implemented");
-        return 0;
-    default:
-        return 0;
-    }
-}
-
-int IsControllerButtonHeld(Controller *controller, ControllerButtons button)
-{
-    switch (controller->controller_type)
-    {
-    case ControllerType_Default:
-        LogWarn("Checking if button held on a Default typed controller");
-        return 0;
-    case ControllerType_Player:
-        return IsPlayerControllerButtonHeld(controller->internal_controller.player_controller, button);
-    case ControllerType_Ai:
-        LogWarn("Checking if button held on a AI typed controller when it is not implemented");
-        return 0;
-    default:
-        return 0;
-    }
 }

@@ -6,37 +6,33 @@
  * @date 2022-10-07
  */
 #pragma once
+#include "SDL2/SDL_events.h"
 #include <SDL2/SDL_scancode.h>
+#include "controller_buttons.h"
+
+union SDL_Event;
+struct PlayerController;
+
+
+typedef enum KeyStates
+{
+    Key_State_Pressed,
+    Key_State_Held,
+    Key_State_Released,
+
+} KeyStates;
+
+typedef struct KeyboardEvent
+{
+    ControllerButtons button;
+    KeyStates state;
+
+} KeyboardEvent;
 
 /**
  * @brief Initializes the Engines input.
  */
 void InitializeInput();
-/**
- * @brief Checks to see if a key on the keyboard is held.
- *
- * @param key The key to check
- *
- * @return 1 if true, 0 if false.
- */
-int IsKeyHeldDown(const SDL_Scancode key);
-/**
- * @brief Checks to see if a key on the keyboard is pressed
- *
- * @param key The key to check.
- *
- * @return 1 of true, 0 if false
- */
-int IsKeyJustPressed(const SDL_Scancode key);
-/**
- * @brief Checks to see if a key on the keyboard is released
- *
- * @param key The key to check.
- *
- * @return 1 if true, 0 if false.
- */
-int IsKeyJustReleased(const SDL_Scancode key);
-/**
- * @brief Gets the current keyboard states, and loads the previous keyboard states.  This should be called every update frame after events are processed.
- */
-void UpdateInputKeyboardStates();
+void HandleInputEvent(union SDL_Event *event);
+void AddPlayerControllerToInput(struct PlayerController *controller);
+void RemovePlayerControllerFromInput(int controller_num);

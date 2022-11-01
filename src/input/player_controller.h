@@ -8,6 +8,13 @@
 #pragma once
 #include <SDL2/SDL_scancode.h>
 #include "controller_buttons.h"
+#include "input.h"
+
+#define MAX_EVENTS 20
+
+union SDL_Event;
+struct KeyboardEvent;
+
 /**
  * @brief The keybinds for a players keyboard for each of the buttons.
  */
@@ -31,6 +38,9 @@ typedef struct PlayerController
 {
     unsigned char player_number;
     KeyboardKeybinds *keyboard_controls;
+    KeyboardEvent current_events[MAX_EVENTS];
+    int current_number_of_events;
+    int current_buttons_down[ControllerButtons_Max];
 
 } PlayerController;
 /**
@@ -47,30 +57,5 @@ PlayerController *CreatePlayerController(unsigned char player_number);
  * @param controller The controller to destroy.
  */
 void DestroyPlayerController(PlayerController *controller);
-/**
- * @brief Checks to see if a player controller button is pressed, used by the parent controller.
- *
- * @param player_controller The player controller to check
- * @param button The button to check
- *
- * @return 1 if true, 0 if not.
- */
-int IsPlayerControllerButtonPressed(PlayerController *player_controller, ControllerButtons button);
-/**
- * @brief Checks to see if a player controllers button is just released, used by the parent controller
- *
- * @param player_controller The player controller to check
- * @param button The button to check
- *
- * @return 1 if true, 0 if not.
- */
-int IsPlayerControllerButtonReleased(PlayerController *player_controller, ControllerButtons button);
-/**
- * @brief Checks to see if a player controllers button is being held, used by the parent controller
- *
- * @param player_controller The player controller to check
- * @param button The button to check
- *
- * @return 1 if true, 0 if not
- */
-int IsPlayerControllerButtonHeld(PlayerController *player_controller, ControllerButtons button);
+void PlayerControllerInputReceive(PlayerController *controller, union SDL_Event *event);
+struct KeyboardEvent *PopKeyboardEvent(PlayerController *controller);

@@ -1,6 +1,14 @@
+#include <stddef.h>
 #include <stdlib.h>
+#include "SDL2/SDL_events.h"
+#include "../debug/debug.h"
+#include "SDL2/SDL_scancode.h"
+#include "controller.h"
+#include "controller_buttons.h"
 #include "player_controller.h"
 #include "input.h"
+
+
 
 static KeyboardKeybinds *GetDefaultKeyboardKeybinds()
 {
@@ -20,102 +28,89 @@ static KeyboardKeybinds *GetDefaultKeyboardKeybinds()
 
 PlayerController *CreatePlayerController(unsigned char player_number)
 {
-    PlayerController *player_controller = malloc(sizeof(*player_controller));
+    PlayerController *player_controller = calloc(1, sizeof(*player_controller));
+    //Use calloc here to initialize to 0
     player_controller->keyboard_controls = GetDefaultKeyboardKeybinds();
     player_controller->player_number = player_number;
+    AddPlayerControllerToInput(player_controller);
     return player_controller;
 }
 
 void DestroyPlayerController(PlayerController *controller)
 {
     free(controller->keyboard_controls);
+    RemovePlayerControllerFromInput(controller->player_number);
     free(controller);
     controller = NULL;
 }
 
-int IsPlayerControllerButtonPressed(PlayerController *player_controller, ControllerButtons button)
+//TODO this is ugly.
+static ControllerButtons GetButtonFromScancode(PlayerController *controller, SDL_Scancode code)
 {
-    switch (button)
-    {
-    case ControllerButton_Up:
-        return IsKeyJustPressed(player_controller->keyboard_controls->UpButton);
-    case ControllerButton_Right:
-        return IsKeyJustPressed(player_controller->keyboard_controls->RightButton);
-    case ControllerButton_Down:
-        return IsKeyJustPressed(player_controller->keyboard_controls->DownButton);
-    case ControllerButton_Left:
-        return IsKeyJustPressed(player_controller->keyboard_controls->LeftButton);
-    case ControllerButton_Y:
-        return IsKeyJustPressed(player_controller->keyboard_controls->YButton);
-    case ControllerButton_B:
-        return IsKeyJustPressed(player_controller->keyboard_controls->BButton);
-    case ControllerButton_A:
-        return IsKeyJustPressed(player_controller->keyboard_controls->AButton);
-    case ControllerButton_X:
-        return IsKeyJustPressed(player_controller->keyboard_controls->XButton);
-    case ControllerButton_Start:
-        return IsKeyJustPressed(player_controller->keyboard_controls->StartButton);
-    case ControllerButton_Select:
-        return IsKeyJustPressed(player_controller->keyboard_controls->SelectButton);
-    default:
-        return 0;
-    }
+    if(controller->keyboard_controls->SelectButton == code)
+        return ControllerButton_Select;
+    else if(controller->keyboard_controls->StartButton == code)
+        return ControllerButton_Start;
+    else if(controller->keyboard_controls->UpButton == code)
+        return ControllerButton_Up;
+    else if(controller->keyboard_controls->RightButton == code)
+        return ControllerButton_Right;
+    else if(controller->keyboard_controls->DownButton == code)
+        return ControllerButton_Down;
+    else if(controller->keyboard_controls->LeftButton == code)
+        return ControllerButton_Left;
+    else if(controller->keyboard_controls->AButton == code)
+        return ControllerButton_A;
+    else if(controller->keyboard_controls->XButton == code)
+        return ControllerButton_X;
+    else if(controller->keyboard_controls->YButton == code)
+        return ControllerButton_Y;
+    else if(controller->keyboard_controls->BButton == code)
+        return ControllerButton_B;
+    return ControllerButtons_Max;
 }
 
-int IsPlayerControllerButtonReleased(PlayerController *player_controller, ControllerButtons button)
+//TODO what even is this
+void PlayerControllerInputReceive(PlayerController *controller, SDL_Event *event)
 {
-    switch (button)
+    int type = event->type;
+    if(type != SDL_KEYDOWN && type != SDL_KEYUP)
     {
-    case ControllerButton_Up:
-        return IsKeyJustReleased(player_controller->keyboard_controls->UpButton);
-    case ControllerButton_Right:
-        return IsKeyJustReleased(player_controller->keyboard_controls->RightButton);
-    case ControllerButton_Down:
-        return IsKeyJustReleased(player_controller->keyboard_controls->DownButton);
-    case ControllerButton_Left:
-        return IsKeyJustReleased(player_controller->keyboard_controls->LeftButton);
-    case ControllerButton_Y:
-        return IsKeyJustReleased(player_controller->keyboard_controls->YButton);
-    case ControllerButton_B:
-        return IsKeyJustReleased(player_controller->keyboard_controls->BButton);
-    case ControllerButton_A:
-        return IsKeyJustReleased(player_controller->keyboard_controls->AButton);
-    case ControllerButton_X:
-        return IsKeyJustReleased(player_controller->keyboard_controls->XButton);
-    case ControllerButton_Start:
-        return IsKeyJustReleased(player_controller->keyboard_controls->StartButton);
-    case ControllerButton_Select:
-        return IsKeyJustReleased(player_controller->keyboard_controls->SelectButton);
-    default:
-        return 0;
+        LogWarn("Player Controller got an event type that wasn't keydown or keyup, somehow you borked this up");
+        return;
     }
+    ++controller->current_number_of_events;
+    SDL_Scancode code = event->key.keysym.scancode;
+    ControllerButtons button = GetButtonFromScancode(controller, code);
+    if(button == ControllerButtons_Max)
+        return;
+    controller->current_events[controller->current_number_of_events].button = button;
+    if(type == SDL_KEYDOWN)
+    {
+            int pressed = controller->current_buttons_down[button];
+            if(pressed)
+            {
+                controller->current_events[controller->current_number_of_events].state = Key_State_Held;
+            }
+            else
+            {
+                controller->current_events[controller->current_number_of_events].state = Key_State_Pressed;
+                controller->current_buttons_down[button] = 1;
+            }
+    }
+    else if(type == SDL_KEYUP)
+    {
+        controller->current_events[controller->current_number_of_events].state = Key_State_Released;
+        controller->current_buttons_down[button] = 0;
+    }
+
 }
 
-int IsPlayerControllerButtonHeld(PlayerController *player_controller, ControllerButtons button)
+KeyboardEvent *PopKeyboardEvent(PlayerController *controller)
 {
-    switch (button)
-    {
-    case ControllerButton_Up:
-        return IsKeyHeldDown(player_controller->keyboard_controls->UpButton);
-    case ControllerButton_Right:
-        return IsKeyHeldDown(player_controller->keyboard_controls->RightButton);
-    case ControllerButton_Down:
-        return IsKeyHeldDown(player_controller->keyboard_controls->DownButton);
-    case ControllerButton_Left:
-        return IsKeyHeldDown(player_controller->keyboard_controls->LeftButton);
-    case ControllerButton_Y:
-        return IsKeyHeldDown(player_controller->keyboard_controls->YButton);
-    case ControllerButton_B:
-        return IsKeyHeldDown(player_controller->keyboard_controls->BButton);
-    case ControllerButton_A:
-        return IsKeyHeldDown(player_controller->keyboard_controls->AButton);
-    case ControllerButton_X:
-        return IsKeyHeldDown(player_controller->keyboard_controls->XButton);
-    case ControllerButton_Start:
-        return IsKeyHeldDown(player_controller->keyboard_controls->StartButton);
-    case ControllerButton_Select:
-        return IsKeyHeldDown(player_controller->keyboard_controls->SelectButton);
-    default:
-        return 0;
-    }
+    if(!controller->current_number_of_events)
+        return NULL;
+    return &controller->current_events[--controller->current_number_of_events];
 }
+
+

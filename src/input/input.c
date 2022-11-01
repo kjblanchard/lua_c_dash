@@ -1,41 +1,43 @@
 #include <stdint.h>
 #include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_events.h>
+#include <stdlib.h>
+#include "../debug/debug.h"
+#include "player_controller.h"
 #include "input.h"
 
-static void InitializeKeyboardStateArrays();
-static uint8_t current_keyboard_state[SDL_NUM_SCANCODES];
-static uint8_t previous_keyboard_state[SDL_NUM_SCANCODES];
+#define MAX_PLAYERS 4
+static int current_player_controllers = 0;
+static PlayerController* player_controllers[MAX_PLAYERS];
 
 void InitializeInput()
 {
-    InitializeKeyboardStateArrays();
-}
-/**
- * @brief Loads the previous and current keyboard states.
- */
-static void InitializeKeyboardStateArrays()
-{
-    memset(previous_keyboard_state, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-    memcpy(current_keyboard_state, SDL_GetKeyboardState(NULL), sizeof(Uint8) * SDL_NUM_SCANCODES);
+
 }
 
-int IsKeyHeldDown(SDL_Scancode key)
+void AddPlayerControllerToInput(PlayerController *controller)
 {
-    return previous_keyboard_state[key] && current_keyboard_state[key];
+    if(current_player_controllers == MAX_PLAYERS)
+    {
+        LogWarn("Cannot add another controller, already at max players.");
+        return;
+    }
+    player_controllers[current_player_controllers++] = controller;
 }
 
-int IsKeyJustPressed(const SDL_Scancode key)
+void HandleInputEvent(SDL_Event *event)
 {
-    return current_keyboard_state[key] && !previous_keyboard_state[key];
+    for (size_t i = 0; i < current_player_controllers; ++i)
+    {
+        if(!player_controllers[i])
+            return;
+        PlayerControllerInputReceive(player_controllers[i], event);
+    }
+
 }
 
-int IsKeyJustReleased(const SDL_Scancode key)
+void RemovePlayerControllerFromInput(int controller_num)
 {
-    return !current_keyboard_state[key] && previous_keyboard_state[key];
-}
 
-void UpdateInputKeyboardStates()
-{
-    memcpy(previous_keyboard_state, current_keyboard_state, sizeof(Uint8) * SDL_NUM_SCANCODES);
-    memcpy(current_keyboard_state, SDL_GetKeyboardState(NULL), sizeof(Uint8) * SDL_NUM_SCANCODES);
+
 }

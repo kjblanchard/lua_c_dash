@@ -27,51 +27,56 @@ static unsigned int debug_window_created = 0;
 
 static void ProcessInput()
 {
-    SDL_Event sdlEvent;
+    SDL_Event sdl_event;
     if (debug_window_created)
         ProcessDebugWindowInputBegin();
-    while (SDL_PollEvent(&sdlEvent) != 0)
+    while (SDL_PollEvent(&sdl_event) != 0)
     {
-        if (debug_window_created && debug_window_enabled && sdlEvent.window.windowID != GameWorld->graphics->window_id)
+        if (debug_window_created && debug_window_enabled && sdl_event.window.windowID != GameWorld->graphics->window_id)
         {
-            if (sdlEvent.type == SDL_KEYDOWN && (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE || sdlEvent.key.keysym.sym == SDLK_ESCAPE))
+            if (sdl_event.type == SDL_KEYDOWN && (sdl_event.key.keysym.sym == SDLK_BACKQUOTE || sdl_event.key.keysym.sym == SDLK_ESCAPE))
             {
                 debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                 ToggleDebugWindow(debug_window_enabled);
             }
-            else if (sdlEvent.type == SDL_WINDOWEVENT)
+            else if (sdl_event.type == SDL_WINDOWEVENT)
             {
-                if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+                if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
                 {
                     debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                     ToggleDebugWindow(debug_window_enabled);
                 }
             }
             else
-                ProcessDebugWindowInput(&sdlEvent);
+                ProcessDebugWindowInput(&sdl_event);
             continue;
         }
 
-        else if (sdlEvent.type == SDL_KEYDOWN)
+        else if (sdl_event.type == SDL_KEYDOWN || sdl_event.type == SDL_KEYUP)
         {
-            if (sdlEvent.key.keysym.sym == SDLK_ESCAPE)
+            if (sdl_event.key.keysym.sym == SDLK_ESCAPE)
             {
                 GameWorld->is_running = 0;
             }
-            else if (sdlEvent.key.keysym.sym == SDLK_BACKQUOTE)
+            else if (sdl_event.key.keysym.sym == SDLK_BACKQUOTE)
             {
                 debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                 ToggleDebugWindow(debug_window_enabled);
             }
+            else
+            {
+               HandleInputEvent(&sdl_event); 
+                //Send this to the input handler.
+
+            }
         }
-        else if (sdlEvent.type == SDL_WINDOWEVENT)
-            if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE)
+        else if (sdl_event.type == SDL_WINDOWEVENT)
+            if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
                 GameWorld->is_running = 0;
     }
 
     if (debug_window_created)
         ProcessDebugWindowInputEnd();
-    UpdateInputKeyboardStates();
 }
 
 int main(int argc, char **argv)
