@@ -79,7 +79,6 @@ void PlayerControllerInputReceive(PlayerController *controller, SDL_Event *event
         LogWarn("Player Controller got an event type that wasn't keydown or keyup, somehow you borked this up");
         return;
     }
-    ++controller->current_number_of_events;
     SDL_Scancode code = event->key.keysym.scancode;
     ControllerButtons button = GetButtonFromScancode(controller, code);
     if(button == ControllerButtons_Max)
@@ -96,20 +95,37 @@ void PlayerControllerInputReceive(PlayerController *controller, SDL_Event *event
             {
                 controller->current_events[controller->current_number_of_events].state = Key_State_Pressed;
                 controller->current_buttons_down[button] = 1;
+                ++controller->current_number_buttons_down;
             }
     }
     else if(type == SDL_KEYUP)
     {
         controller->current_events[controller->current_number_of_events].state = Key_State_Released;
         controller->current_buttons_down[button] = 0;
+        --controller->current_number_buttons_down;
     }
+    ++controller->current_number_of_events;
 
 }
 
 KeyboardEvent *PopKeyboardEvent(PlayerController *controller)
 {
     if(!controller->current_number_of_events)
+    {
+        if(controller->current_number_buttons_down)
+        {
+            for (size_t i = 0; i < ControllerButtons_Max; ++i) {
+                if(controller->current_buttons_down[i])
+                {
+                    controller->current_events[controller->current_number_of_events].state = Key_State_Held;
+                    controller->current_events[controller->current_number_of_events].button = i;
+                    ++controller->current_number_of_events;
+                }
+            }
+
+        }
         return NULL;
+    }
     return &controller->current_events[--controller->current_number_of_events];
 }
 
