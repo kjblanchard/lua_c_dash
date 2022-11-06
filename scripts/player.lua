@@ -27,15 +27,10 @@ end
 
 function Player:start()
     print('Starting player with name '..self.name)
-    print(self.controller)
-    self.controller:bind_button(0, 4, Player.move_left)
-    self.controller:bind_button(1, 4, Player.move_left)
-    self.controller:bind_button(0, 1, Player.move_up)
-    self.controller:bind_button(1, 1, Player.move_up)
-    self.controller:bind_button(0, 2, Player.move_right)
-    self.controller:bind_button(1, 2, Player.move_right)
-    self.controller:bind_button(0, 3, Player.move_down)
-    self.controller:bind_button(1, 3, Player.move_down)
+    self.controller:left_button_down(Player.move_left)
+    self.controller:up_button_down(Player.move_up)
+    self.controller:down_button_down(Player.move_down)
+    self.controller:right_button_down(Player.move_right)
 end
 
 function Player:move_left()
