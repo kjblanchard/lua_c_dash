@@ -58,7 +58,7 @@ static void ProcessInput()
             {
                 GameWorld->is_running = 0;
             }
-            else if (sdl_event.key.keysym.sym == SDLK_BACKQUOTE)
+            else if (sdl_event.key.keysym.sym == SDLK_BACKQUOTE && sdl_event.type == SDL_KEYDOWN)
             {
                 debug_window_enabled = (debug_window_enabled) ? 0 : 1;
                 ToggleDebugWindow(debug_window_enabled);
