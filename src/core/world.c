@@ -4,6 +4,8 @@
 #include "graphics_device.h"
 
 World *GameWorld = NULL;
+SDL_Joystick* gGameController = NULL;
+const int JOYSTICK_DEAD_ZONE = 8000;
 
 World *CreateWorld()
 {
@@ -24,7 +26,7 @@ World *CreateWorld()
 
 int InitializeSdl()
 {
-    int sdl_video_init_result = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    int sdl_video_init_result = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     if (sdl_video_init_result != 0)
     {
         return 0;
