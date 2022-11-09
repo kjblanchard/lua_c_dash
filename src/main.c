@@ -70,6 +70,14 @@ static void ProcessInput()
 
             }
         }
+        else if (sdl_event.type == SDL_JOYDEVICEADDED)
+        {
+            AddJoystick(&sdl_event);
+        }
+        else if(sdl_event.type == SDL_JOYBUTTONDOWN || sdl_event.type == SDL_JOYBUTTONUP)
+        {
+            HandleInputEvent(&sdl_event);
+        }
         else if (sdl_event.type == SDL_WINDOWEVENT)
             if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
                 GameWorld->is_running = 0;
